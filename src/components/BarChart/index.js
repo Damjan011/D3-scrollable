@@ -37,7 +37,7 @@ const BarChart = ({ width, height, data }) => {
       .range([height - margin.bottom, margin.top])
 
 
-/* scrollavle*/
+/* scrollable*/
 //   const x = d3.scaleTime()
 //   .domain(d3.extent(data, d => d.timestamp))
 //   .range([0, width])
