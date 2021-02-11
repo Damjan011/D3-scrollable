@@ -1,0 +1,11 @@
+/* svg g path {
+  transform: initial !important;
+} */
+
+g path:last-of-type {
+  transform: initial !important;
+}
+
+/* g {
+  transform: translateY(0) !important;
+} */
