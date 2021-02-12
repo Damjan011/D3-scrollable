@@ -35,10 +35,7 @@ const BarChart = ({ width, height, data }) => {
 
   const xAxis = g => g
     .attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
-    
-  
-    // xAxis().innerTickSize(-height)
+    .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0));
 
   const yAxis = g => g
     .attr("transform", `translate(960,0)`)
@@ -51,9 +48,9 @@ const BarChart = ({ width, height, data }) => {
       .style("fill", "#ffffff")
       .text(data.y));
 
-  const xGridlines = d3.axisBottom(x).tickSize(-height).tickFormat('').ticks(10);
+  const xGridlines = d3.axisBottom(x).tickSize(-350).tickFormat('').ticks(10);
 
-  const yGridlines = d3.axisLeft(y).tickSize(-width).tickFormat('').ticks(10);
+  const yGridlines = d3.axisLeft(y).tickSize(-width).tickFormat('').ticks(5);
 
   const drawGraph = () => {
     const svg = d3.select(ref.current)
@@ -62,9 +59,6 @@ const BarChart = ({ width, height, data }) => {
     const nestedSvg = svg.append("svg")
       .attr("viewBox", [width, height])
       .attr("width", 960);
-
-
-
 
     nestedSvg.append("path")
       .datum(data)
@@ -84,24 +78,21 @@ const BarChart = ({ width, height, data }) => {
       .attr("stroke-linecap", "round")
       .attr("d", line2);
 
-      
-
-
-
       nestedSvg.append("g")
       .call(xAxis)
-
-
-      // nestedSvg.append("g")
-      // .call(xGridlines)
-
+      .attr('class', 'x-axis');
 
     svg.append("g")
-      .call(yAxis);
+      .call(yAxis)
+      .attr('class', 'y-axis');
+
+      nestedSvg.append('g')
+      .attr('class', 'x-axis-grid')
+      .attr('transform', `translate(0, ${height - 30})`)
+      .call(xGridlines);
 
     nestedSvg.append("g")			
       .call(yGridlines);
-
 
     const zoom = d3.zoom()
       .translateExtent([
@@ -118,12 +109,10 @@ const BarChart = ({ width, height, data }) => {
 
         d3.select(this)
           .select('g:first-of-type')
-          //.attr( 'transform', burgija )
-          .attr("transform", `translate(${burgija.x}, ${370})`)
+          .attr("transform", `translate(${burgija.x}, ${370})`);
 
-
-        d3.select(xGridlines).attr("transform", `translate(${burgija.x}, ${370})`)
-
+          d3.select('x-axis-grid')
+          .attr("color", "red")
       });
 
     svg.call(zoom)

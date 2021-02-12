@@ -25,3 +25,25 @@ g path:last-of-type {
 .grid path {
   stroke-width: 0;
 } */
+
+text {
+  font-weight: 600;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.x-axis .tick line {
+  stroke: #aaa;
+}
+
+.y-axis .tick line {
+  stroke: #aaa;
+}
+
+/* .x-axis-grid {
+  color: red;
+} */
+
+.x-axis {
+  fill: red;
+}
