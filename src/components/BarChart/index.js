@@ -19,7 +19,7 @@ const BarChart = ({ width, height, data }) => {
 
   const x = d3.scaleUtc()
     .domain(d3.extent(data, d => d.timestamp))
-    .range([margin.left, 2000])
+    .range([0, 2000])
 
   const y = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.rx)]).nice()
@@ -35,7 +35,7 @@ const BarChart = ({ width, height, data }) => {
 
   const xAxis = g => g
     .attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0));
+    .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
 
   const yAxis = g => g
     .attr("transform", `translate(960,0)`)
@@ -58,15 +58,45 @@ const BarChart = ({ width, height, data }) => {
 
     const nestedSvg = svg.append("svg")
       .attr("viewBox", [width, height])
-      .attr("width", 960);
+      .attr("width", 960)
+      .attr('id', 'svg-inner')
+      .attr('class', 'svg-inner');
 
-    nestedSvg.append("path")
+      const tooltip = d3.select("body").append("div")
+      .attr("class", "svg-tooltip")
+      .style("position", "absolute")
+      .style("visibility", "hidden")
+      .text("bugraaa");
+
+
+
+      nestedSvg.append('g')
+      .call(xAxis)
+      .attr('class', 'x-axis')
+
+      nestedSvg.append('g')
+      .call(xGridlines)
+      .attr('transform', `translate(0, ${height - 30})`)
+      .attr('stroke-dasharray', '5 5')
+      .attr('class', 'x-axis-grid')
+      .attr('id', 'coban')
+
+
+
+    nestedSvg.append("g")			
+      .call(yGridlines)
+      .attr('class', 'y-axis-grid');
+
+
+
+      nestedSvg.append("path")
       .datum(data)
       .attr("fill", "none")
       .attr("stroke", "#6EE294")
       .attr("stroke-width", 4)
       .attr("stroke-linejoin", "round")
       .attr("stroke-linecap", "round")
+      .attr("id", 'thisisline')
       .attr("d", line);
 
     nestedSvg.append("path")
@@ -78,21 +108,26 @@ const BarChart = ({ width, height, data }) => {
       .attr("stroke-linecap", "round")
       .attr("d", line2);
 
-      nestedSvg.append("g")
-      .call(xAxis)
-      .attr('class', 'x-axis');
+      d3.select('#svg-inner')
+      .on("mouseover", function(){
+        return tooltip.style("visibility", "visible");
+      })
+      .on("mousemove", function(event){
+        let calcPageY = event.pageY;
+        let calcPageX = event.pageX;
+        return tooltip.style("top", (calcPageY-10)+"px").style("left",(calcPageX+10)+"px");
+      })
+      .on("mouseout", function(){
+        return tooltip.style("visibility", "hidden");
+      });
 
-    svg.append("g")
-      .call(yAxis)
-      .attr('class', 'y-axis');
 
-      nestedSvg.append('g')
-      .attr('class', 'x-axis-grid')
-      .attr('transform', `translate(0, ${height - 30})`)
-      .call(xGridlines);
 
-    nestedSvg.append("g")			
-      .call(yGridlines);
+      svg.append('g')
+      .call(yAxis);
+
+
+
 
     const zoom = d3.zoom()
       .translateExtent([
@@ -111,16 +146,19 @@ const BarChart = ({ width, height, data }) => {
           .select('g:first-of-type')
           .attr("transform", `translate(${burgija.x}, ${370})`);
 
-          d3.select('x-axis-grid')
-          .attr("color", "red")
+        d3.select(this)
+          .select('#coban')
+          .attr("transform", `translate(${burgija.x}, ${370})`)
       });
+      svg.call(zoom);
 
-    svg.call(zoom)
+
+      
   }
 
   return (
     <div className="chart">
-      <svg style={{padding: '10px'}} ref={ref} />
+      <svg style={{padding: '10px', position: 'relative'}} ref={ref} />
     </div>
   )
 }

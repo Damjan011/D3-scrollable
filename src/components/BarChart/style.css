@@ -26,24 +26,46 @@ g path:last-of-type {
   stroke-width: 0;
 } */
 
-text {
+/* text {
   font-weight: 600;
   font-size: 12px;
   color: #aaa;
 }
-
+*/
 .x-axis .tick line {
-  stroke: #aaa;
+  stroke: #D9D9D9;
 }
 
 .y-axis .tick line {
-  stroke: #aaa;
+  stroke: #D9D9D9;
+} 
+
+.x-axis-grid g {
+  stroke: #D9D9D9;
+}
+
+.x-axis-grid g line {
+  stroke: #D9D9D9;
+  stroke-width: 1;
+}
+
+.y-axis-grid g line {
+  stroke: #D9D9D9;
+}
+
+.domain {
+  stroke: #d9d9d9;
 }
 
 /* .x-axis-grid {
   color: red;
 } */
 
-.x-axis {
-  fill: red;
+.svg-tooltip {
+  background: #232323;
+  color: #fff;
+  display: block;
+  width: 220px;
+  height: 110px;
+  z-index: 177;
 }
