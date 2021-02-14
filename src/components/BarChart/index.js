@@ -56,7 +56,7 @@ const BarChart = ({ width, height, data }) => {
     const svg = d3.select(ref.current)
       .attr("viewBox", [0, 0, width, height])
 
-    const nestedSvg = svg.append("svg")
+      const nestedSvg = svg.append("svg")
       .attr("viewBox", [width, height])
       .attr("width", 960)
       .attr('id', 'svg-inner')
@@ -67,8 +67,6 @@ const BarChart = ({ width, height, data }) => {
       .style("position", "absolute")
       .style("visibility", "hidden")
       .text("bugraaa");
-
-
 
       nestedSvg.append('g')
       .call(xAxis)
@@ -81,13 +79,9 @@ const BarChart = ({ width, height, data }) => {
       .attr('class', 'x-axis-grid')
       .attr('id', 'coban')
 
-
-
     nestedSvg.append("g")			
       .call(yGridlines)
       .attr('class', 'y-axis-grid');
-
-
 
       nestedSvg.append("path")
       .datum(data)
@@ -108,6 +102,72 @@ const BarChart = ({ width, height, data }) => {
       .attr("stroke-linecap", "round")
       .attr("d", line2);
 
+      svg.append('g')
+      .call(yAxis);
+
+      svg.append('line').classed('hoverLine', true)
+      svg.append('circle').classed('hoverPoint', true);
+      svg.append("text").classed('hoverText', true);
+    
+      svg.append('rect')
+        .attr('fill', 'transparent')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', width)
+        .attr('height', height);
+    
+      svg.on('mousemove', mouseMove);
+
+      mouseMove = (event) => {
+        eventParam = event;
+        eventParam.preventDefault();
+        const mouse = eventParam.mouse(eventParam.target);
+        const [
+          xCoord,
+          yCoord,
+        ] = mouse;
+      
+        const mouseDate = xScale.invert(xCoord);
+        const mouseDateSnap = d3.timeYear.floor(mouseDate);
+        
+        if (xScale(mouseDateSnap) < margin.left ||
+           xScale(mouseDateSnap) > width - margin.right) {
+          return;
+        }
+        
+        const bisectDate = d3.bisector(d => d.date).right;
+        const xIndex = bisectDate(data, mouseDateSnap, 1);
+        const mousePopulation = data[xIndex].population;
+      
+        svg.selectAll('.hoverLine')
+          .attr('x1', xScale(mouseDateSnap))
+          .attr('y1', margin.top)
+          .attr('x2', xScale(mouseDateSnap))
+          .attr('y2', height - margin.bottom)
+          .attr('stroke', '#147F90')
+          .attr('fill', '#A6E8F2')
+        ;
+      
+        svg.selectAll('.hoverPoint')
+          .attr('cx', xScale(mouseDateSnap))
+          .attr('cy', yScale(mousePopulation))
+          .attr('r', '7')
+          .attr('fill', '#147F90')
+        ;
+        
+        const isLessThanHalf = xIndex > data.length / 2;
+        const hoverTextX = isLessThanHalf ? '-0.75em' : '0.75em';
+        const hoverTextAnchor = isLessThanHalf ? 'end' : 'start';
+      
+        svg.selectAll('.hoverText')
+          .attr('x', xScale(mouseDateSnap))
+          .attr('y', yScale(mousePopulation))
+          .attr('dx', hoverTextX)
+          .attr('dy', '-1.25em')
+          .style('text-anchor', hoverTextAnchor)
+          .text(d3.format('.5s')(mousePopulation));
+      };
+
       d3.select('#svg-inner')
       .on("mouseover", function(){
         return tooltip.style("visibility", "visible");
@@ -120,14 +180,6 @@ const BarChart = ({ width, height, data }) => {
       .on("mouseout", function(){
         return tooltip.style("visibility", "hidden");
       });
-
-
-
-      svg.append('g')
-      .call(yAxis);
-
-
-
 
     const zoom = d3.zoom()
       .translateExtent([
@@ -152,8 +204,6 @@ const BarChart = ({ width, height, data }) => {
       });
       svg.call(zoom);
 
-
-      
   }
 
   return (
