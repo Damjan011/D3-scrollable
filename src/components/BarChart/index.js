@@ -55,11 +55,12 @@ const BarChart = ({ width, height, data }) => {
   const drawGraph = () => {
     const svg = d3.select(ref.current)
       .attr("viewBox", [0, 0, width, height])
+      .attr('id', 'bakalar')
 
       const nestedSvg = svg.append("svg")
       .attr("viewBox", [width, height])
+      .attr("id", "svg-inner")
       .attr("width", 960)
-      .attr('id', 'svg-inner')
       .attr('class', 'svg-inner');
 
       const tooltip = d3.select("body").append("div")
@@ -67,6 +68,27 @@ const BarChart = ({ width, height, data }) => {
       .style("position", "absolute")
       .style("visibility", "hidden")
       .text("bugraaa");
+
+      d3.select('#bakalar')
+      .on("mouseover", function(){
+        return tooltip.style("visibility", "visible");
+      })
+      .on("mousemove", function(event){
+        let calcPageY = event.pageY;
+        console.log(calcPageY)
+        let calcPageX = event.pageX;
+        console.log(calcPageX)
+        if(calcPageX < 200) {
+          return tooltip.style('visibility', 'hidden')
+        } else {
+        return tooltip.style("top", (calcPageY-10)+"px")
+                      .style("left",(calcPageX+10)+"px")
+                      .style("visibility", "visible");
+        }
+      })
+      .on("mouseout", function(){
+        return tooltip.style("visibility", "hidden");
+      });
 
       nestedSvg.append('g')
       .call(xAxis)
@@ -105,82 +127,6 @@ const BarChart = ({ width, height, data }) => {
       svg.append('g')
       .call(yAxis);
 
-      svg.append('line').classed('hoverLine', true)
-      svg.append('circle').classed('hoverPoint', true);
-      svg.append("text").classed('hoverText', true);
-    
-      svg.append('rect')
-        .attr('fill', 'transparent')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('width', width)
-        .attr('height', height);
-    
-      svg.on('mousemove', mouseMove);
-
-      mouseMove = (event) => {
-        eventParam = event;
-        eventParam.preventDefault();
-        const mouse = eventParam.mouse(eventParam.target);
-        const [
-          xCoord,
-          yCoord,
-        ] = mouse;
-      
-        const mouseDate = xScale.invert(xCoord);
-        const mouseDateSnap = d3.timeYear.floor(mouseDate);
-        
-        if (xScale(mouseDateSnap) < margin.left ||
-           xScale(mouseDateSnap) > width - margin.right) {
-          return;
-        }
-        
-        const bisectDate = d3.bisector(d => d.date).right;
-        const xIndex = bisectDate(data, mouseDateSnap, 1);
-        const mousePopulation = data[xIndex].population;
-      
-        svg.selectAll('.hoverLine')
-          .attr('x1', xScale(mouseDateSnap))
-          .attr('y1', margin.top)
-          .attr('x2', xScale(mouseDateSnap))
-          .attr('y2', height - margin.bottom)
-          .attr('stroke', '#147F90')
-          .attr('fill', '#A6E8F2')
-        ;
-      
-        svg.selectAll('.hoverPoint')
-          .attr('cx', xScale(mouseDateSnap))
-          .attr('cy', yScale(mousePopulation))
-          .attr('r', '7')
-          .attr('fill', '#147F90')
-        ;
-        
-        const isLessThanHalf = xIndex > data.length / 2;
-        const hoverTextX = isLessThanHalf ? '-0.75em' : '0.75em';
-        const hoverTextAnchor = isLessThanHalf ? 'end' : 'start';
-      
-        svg.selectAll('.hoverText')
-          .attr('x', xScale(mouseDateSnap))
-          .attr('y', yScale(mousePopulation))
-          .attr('dx', hoverTextX)
-          .attr('dy', '-1.25em')
-          .style('text-anchor', hoverTextAnchor)
-          .text(d3.format('.5s')(mousePopulation));
-      };
-
-      d3.select('#svg-inner')
-      .on("mouseover", function(){
-        return tooltip.style("visibility", "visible");
-      })
-      .on("mousemove", function(event){
-        let calcPageY = event.pageY;
-        let calcPageX = event.pageX;
-        return tooltip.style("top", (calcPageY-10)+"px").style("left",(calcPageX+10)+"px");
-      })
-      .on("mouseout", function(){
-        return tooltip.style("visibility", "hidden");
-      });
-
     const zoom = d3.zoom()
       .translateExtent([
         // Top Left corner
@@ -193,7 +139,7 @@ const BarChart = ({ width, height, data }) => {
         d3.select(this)
           .selectAll('path')
           .attr("transform", burgija)
-
+        console.log(d3.select(this))
         d3.select(this)
           .select('g:first-of-type')
           .attr("transform", `translate(${burgija.x}, ${370})`);
