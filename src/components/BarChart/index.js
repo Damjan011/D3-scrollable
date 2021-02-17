@@ -58,19 +58,16 @@ const BarChart = ({ width, height, data }) => {
     const svg = d3.select(ref.current)
       .attr("viewBox", [0, 0, width, height])
       .attr('id', 'bakalar')
-      .attr("cursor", "grab");
+      .attr("cursor", "grab")
+      .on("click", function(d, i) {
+        console.log(x.domain()[i]);
+      });
 
     const nestedSvg = svg.append("svg")
       .attr("viewBox", [width, height])
       .attr("id", "svg-inner")
       .attr("width", 960)
       .attr('class', 'svg-inner')
-
-    const patofna = nestedSvg.append('rect')
-        .style('fill', 'none')
-        .style('pointer-events', 'all')
-        .attr('width', width * 2)
-        .attr('height', height)
 
     nestedSvg.append('g')
       .call(xAxis)
@@ -106,6 +103,11 @@ const BarChart = ({ width, height, data }) => {
       .attr("stroke-linecap", "round")
       .attr("d", line2);
 
+      // var pathEl = d3.select('#thisisline').node();
+      // var pathLength = pathEl.getTotalLength();
+      // var BBox = pathEl.getBBox();
+      // console.log(pathLength, BBox);
+
     svg.append('g')
       .call(yAxis);
 
@@ -119,7 +121,7 @@ const BarChart = ({ width, height, data }) => {
       .on('zoom', function (event) {
         const burgija = event.transform;
         const patka = event.sourceEvent;
-        console.log(burgija)
+        console.log(delta.value)
         burgija.k = 1;
         if (patka.deltaY) {
           if (patka.deltaY === 100 && delta.value < 10) {
@@ -156,8 +158,6 @@ const BarChart = ({ width, height, data }) => {
         .attr('text-anchor', 'left')
         .attr('alignment-baseline', 'middle')
 
-
-
     // d3.select('#bakalar')
     // .on("mouseover", function(){
     //   return tooltip.style("visibility", "visible");
@@ -185,23 +185,33 @@ const BarChart = ({ width, height, data }) => {
     //   return tooltip.style("visibility", "hidden")
     // });
 
+    nestedSvg.call(zoom);
+
     const butka = (patak) => <Tooltip patak={patak} />
 
-      patofna
+    nestedSvg.append('rect')
+    .style('fill', 'none')
+    .style('pointer-events', 'all')
+    .attr('width', width)
+    .attr('height', height)
       .on('mouseover', () => {
         focus.style('opacity', 1);
         focusText.style('opacity', 1);
       })
       .on('mousemove', (event) => {
+        console.log('jasam event x',event.x)
+        console.log(d3.select(this))
+        var bindThis = d3.select(this);
         var x0 = x.invert(d3.pointer(event)[0]);
+        console.log(x0)
         var i = bisect(data, x0, 1);
         var selectedData = data[i];
+        console.log(i)
         focus
           .attr('cx', x(selectedData.timestamp))
           .attr('cy', y(selectedData.rx))
         focusText
         .html("x:" + selectedData.timestamp + "  -oipiopyioypoiyp  " + "y:" + selectedData.rx)
-
         .attr("x", x(selectedData.timestamp)+15)
         .attr("y", y(selectedData.rx))
       })
@@ -222,7 +232,6 @@ const BarChart = ({ width, height, data }) => {
         return d.timestamp; 
       }).right;
 
-      svg.call(zoom);
   }
 
   return (
