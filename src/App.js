@@ -169,8 +169,6 @@ const newData = [
   },
 ];
 
-var i = 0;
-
 function App() {
   const [data, setData] = useState([]);
 
