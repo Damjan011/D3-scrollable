@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import React, { useRef, useEffect, useState } from 'react';
 import './style.css';
+import Tooltip from './Tooltip';
 
 const BarChart = ({ width, height, data }) => {
   const [delta, setDelta] = useState({ value: 0 });
@@ -65,30 +66,11 @@ const BarChart = ({ width, height, data }) => {
       .attr("width", 960)
       .attr('class', 'svg-inner')
 
-    const tooltip = d3.select("body").append("div")
-      .attr("class", "svg-tooltip")
-      .style("position", "absolute")
-      .style("visibility", "hidden")
-      .text("bugraaa");
-
-    // d3.select('#bakalar')
-    // .on("mouseover", function(){
-    //   return tooltip.style("visibility", "visible");
-    // })
-    // .on("mousemove", function(event){
-    //   let calcPageY = event.pageY;
-    //   let calcPageX = event.pageX;
-    //   if(calcPageX < 200) {
-    //     return tooltip.style('visibility', 'hidden')
-    //   } else {
-    //   return tooltip.style("top", (calcPageY-10)+"px")
-    //                 .style("left",(calcPageX+10)+"px")
-    //                 .style("visibility", "visible");
-    //   }
-    // })
-    // .on("mouseout", function(){
-    //   return tooltip.style("visibility", "hidden")
-    // });
+    const patofna = nestedSvg.append('rect')
+        .style('fill', 'none')
+        .style('pointer-events', 'all')
+        .attr('width', width * 2)
+        .attr('height', height)
 
     nestedSvg.append('g')
       .call(xAxis)
@@ -139,7 +121,6 @@ const BarChart = ({ width, height, data }) => {
         const patka = event.sourceEvent;
         console.log(burgija)
         burgija.k = 1;
-        tooltip.style("visibility", "hidden")
         if (patka.deltaY) {
           if (patka.deltaY === 100 && delta.value < 10) {
             setDelta(delta.value += 50)
@@ -161,57 +142,87 @@ const BarChart = ({ width, height, data }) => {
           .select('#coban')
           .attr("transform", `translate(${delta.value}, ${370})`)
       });
-    svg.call(zoom);
+    
+      var focus = nestedSvg.append('g')
+      .append('circle')
+        .style('fill', 'none')
+        .attr('stroke', 'black')
+        .attr('r', 8.5)
+        .style('opacity', 0)
 
-    //     const bisect = d3.bisector(d => d.timestamp).left;
+    var focusText = nestedSvg.append('g')
+      .append('text')
+        .style('opacity', 0)
+        .attr('text-anchor', 'left')
+        .attr('alignment-baseline', 'middle')
 
 
-    //     const callout = (g, rx) => {
-    //       if (!rx) return g.style("display", "none");
 
-    //       g
-    //       .attr('id', 'newg')
-    //           .style("display", null)
-    //           .style("pointer-events", "none")
-    //           .style("font", "10px sans-serif");
+    // d3.select('#bakalar')
+    // .on("mouseover", function(){
+    //   return tooltip.style("visibility", "visible");
+    // })
+    // .on("mousemove", (event) => {
 
-    //       const path = g.selectAll("path")
-    //         .data([null])
-    //         .join("path")
-    //           .attr("fill", "white")
-    //           .attr("stroke", "black");
+    //   var x0 = x.invert(d3.pointer(event, this)[0]);
+    //   var i = bisect(data, x0, 1);
+    //   var selectedData = data[i]
+      
+    //   console.log(selectedData.timestamp)
+    //   console.log(selectedData.rx)
 
-    //       const text = g.selectAll("text")
-    //         .data([null])
-    //         .join("text")
-    //         .call(text => text
-    //           .selectAll("tspan")
-    //           .data((rx + "").split(/\n/))
-    //           .join("tspan")
-    //             .attr("x", 0)
-    //             .attr("y", (d, i) => `${i * 1.1}em`)
-    //             .style("font-weight", (_, i) => i ? null : "bold")
-    //             .text(d => d));
+    //   let calcPageY = event.pageY;
+    //   let calcPageX = event.pageX;
+    //   if(calcPageX < 200) {
+    //     return tooltip.style('visibility', 'hidden')
+    //   } else {
+    //   return tooltip.style("top", (calcPageY-10)+"px")
+    //                 .style("left",(calcPageX+10)+"px")
+    //                 .style("visibility", "visible");
+    //   }
+    // })
+    // .on("mouseout", function(){
+    //   return tooltip.style("visibility", "hidden")
+    // });
 
-    //       const {x, y, width: w, height: h} = text.node().getBBox();
+    const butka = (patak) => <Tooltip patak={patak} />
 
-    //       text.attr("transform", `translate(${-w / 2},${15 - y})`);
-    //       path.attr("d", `M${-w / 2 - 10},5H-5l5,-5l5,5H${w / 2 + 10}v${h + 20}h-${w + 20}z`);
-    //     }
+      patofna
+      .on('mouseover', () => {
+        focus.style('opacity', 1);
+        focusText.style('opacity', 1);
+      })
+      .on('mousemove', (event) => {
+        var x0 = x.invert(d3.pointer(event)[0]);
+        var i = bisect(data, x0, 1);
+        var selectedData = data[i];
+        focus
+          .attr('cx', x(selectedData.timestamp))
+          .attr('cy', y(selectedData.rx))
+        focusText
+        .html("x:" + selectedData.timestamp + "  -oipiopyioypoiyp  " + "y:" + selectedData.rx)
 
-    // /////////////////////////////////
-    //     const tooltip2 = nestedSvg.append("g");
+        .attr("x", x(selectedData.timestamp)+15)
+        .attr("y", y(selectedData.rx))
+      })
+      .on('mouseout', mouseout)
 
-    //     nestedSvg.on("touchmove mousemove", function(event) {
-    //       const {timestamp, rx} = bisect(d3.pointer(event, this)[0]);
-    //       console.log(bisect(d3.pointer(event, this)[0]))
-    //       tooltip2
-    //           .attr("transform", `translate(${x(timestamp)},${y(rx)})`)
-    //           .call(callout, `${rx} ${timestamp}`);
-    //     });
+    // const tooltip = d3.select("body").append("div")
+    //   .attr("class", "svg-tooltip")
+    //   .style("position", "absolute")
+    //   .style("visibility", "hidden")
+    //   .text("bugraaa");
 
-    //     nestedSvg.on("touchend mouseleave", () => tooltip2.call(callout, null));
+    function mouseout() {
+      focus.style("opacity", 0)
+      focusText.style("opacity", 0)
+    }
 
+      var bisect = d3.bisector(function(d) { 
+        return d.timestamp; 
+      }).right;
+
+      svg.call(zoom);
   }
 
   return (
