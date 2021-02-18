@@ -57,11 +57,8 @@ const BarChart = ({ width, height, data }) => {
   const drawGraph = () => {
     const svg = d3.select(ref.current)
       .attr("viewBox", [0, 0, width, height])
-      .attr('id', 'bakalar')
+      .attr('id', 'svg-main')
       .attr("cursor", "grab")
-      .on("click", function(d, i) {
-        console.log(x.domain()[i]);
-      });
 
     const nestedSvg = svg.append("svg")
       .attr("viewBox", [width, height])
@@ -158,7 +155,7 @@ const BarChart = ({ width, height, data }) => {
         .attr('text-anchor', 'left')
         .attr('alignment-baseline', 'middle')
 
-    // d3.select('#bakalar')
+    // d3.select('#svg-main')
     // .on("mouseover", function(){
     //   return tooltip.style("visibility", "visible");
     // })
