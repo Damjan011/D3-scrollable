@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import BarChart from './components/BarChart';
+import TestChart from './components/TestChart';
 
 const newData = [
   {
@@ -151,39 +152,41 @@ function App() {
   const [data, setData] = useState(newData);
 
   useEffect(() => {
-    setTimeout(() => {
-      setData([
-        ...data,
-        {
-          dn: "tx",
-          rx: 4,
-          time: "18:19:29",
-          timestamp: 1603124887000,
-          timestamp_rx: 1601749500000,
-          timestamp_tx: 1601749500000,
-          top_user: null,
-          tx: 5,
-          up: "rx",
-        },
-        {
-          dn: "tx",
-          rx: 3,
-          time: "18:19:29",
-          timestamp: 1603224897000,
-          timestamp_rx: 1601749500000,
-          timestamp_tx: 1601749500000,
-          top_user: null,
-          tx: 2,
-          up: "rx",
-        },
-      ])
-      console.log('desio sam se')
-    }, 30000)
+    // setTimeout(() => {
+    //   setData([
+    //     ...data,
+    //     {
+    //       dn: "tx",
+    //       rx: 4,
+    //       time: "18:19:29",
+    //       timestamp: 1603124887000,
+    //       timestamp_rx: 1601749500000,
+    //       timestamp_tx: 1601749500000,
+    //       top_user: null,
+    //       tx: 5,
+    //       up: "rx",
+    //     },
+    //     {
+    //       dn: "tx",
+    //       rx: 3,
+    //       time: "18:19:29",
+    //       timestamp: 1603224897000,
+    //       timestamp_rx: 1601749500000,
+    //       timestamp_tx: 1601749500000,
+    //       top_user: null,
+    //       tx: 2,
+    //       up: "rx",
+    //     },
+    //   ])
+    //   console.log('desio sam se')
+    // }, 30000)
   }, [])
 
   return (
     <div className="app">
       <BarChart width={1000} height={400} data={data} />
+
+      {/* <TestChart data={newData} width={595} height={220} /> */}
     </div>
   );
 }

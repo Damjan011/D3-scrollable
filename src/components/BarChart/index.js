@@ -1,13 +1,14 @@
 import * as d3 from 'd3';
 import React, { useRef, useEffect, useState } from 'react';
 import './style.css';
-import Tooltip from './Tooltip';
+import Tooltip from '../Tooltip';
 
 const BarChart = ({ width, height, data }) => {
   const [delta, setDelta] = useState({ value: 0 });
   const ref = useRef();
 
   useEffect(() => {
+    
     const svg = d3.select(ref.current)
       .attr("width", width)
       .attr("height", height)
@@ -19,9 +20,32 @@ const BarChart = ({ width, height, data }) => {
 
   const margin = ({ top: 20, right: 40, bottom: 30, left: 40 });
 
-  const x = d3.scaleUtc()
-    .domain(d3.extent(data, d => d.timestamp))
-    .range([0, 2000])
+// New implementation
+
+  data.sort((a, b) => a.timestamp - b.timestamp);
+
+  var offset = 0,
+    limit = 10,
+    current_index = 10;
+
+  // Useful datapoints (data variable included from external file)
+var chart_data = data.slice(offset, limit),
+date_extent = d3.extent(chart_data, function(d) { return d.timestamp; }),
+age_extent = d3.extent(chart_data, function(d) { return d.rx; }),
+now = new Date(2015, 8, 16),
+scale = 1.25,
+min_translate_x = 0,
+max_translate_x; // Calculated after initial scaling
+
+
+  var x = d3.scaleUtc()
+    .domain([new Date(date_extent[0]), new Date(date_extent[1])])
+    .range([0, width])
+
+  // old domain console.log(d3.extent(data, d => d.timestamp))
+  // old range was 2000
+
+  
 
   const y = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.rx)]).nice()
@@ -53,11 +77,6 @@ const BarChart = ({ width, height, data }) => {
   const xGridlines = d3.axisBottom(x).tickSize(-350).tickFormat('').ticks(20);
 
   const yGridlines = d3.axisLeft(y).tickSize(-width).tickFormat('').ticks(5);
-
-
-  /** */
-
-  /** */
 
   const drawGraph = () => {
     const svg = d3.select(ref.current)
@@ -115,6 +134,8 @@ const BarChart = ({ width, height, data }) => {
     svg.append('g')
       .call(yAxis);
 
+    var referenceX = x.copy();
+
     const zoom = d3.zoom()
       .translateExtent([
         // Top Left corner
@@ -123,19 +144,19 @@ const BarChart = ({ width, height, data }) => {
         [width * 2, 0]
       ])
       .on('zoom', function (event) {
-        const burgija = event.transform;
-        const patka = event.sourceEvent;
-        burgija.k = 1;
-        if (patka.deltaY) {
-          if (patka.deltaY === 100 && delta.value < 10) {
+        const transformByX = event.transform;
+        const wheelTrigger = event.sourceEvent;
+        transformByX.k = 1;
+        if (wheelTrigger.deltaY) {
+          if (wheelTrigger.deltaY === 100 && delta.value < 10) {
             setDelta(delta.value += 50)
-            burgija.x = delta.value
-          } else if (patka.deltaY === -100 && delta.value > -1000) {
+            transformByX.x = delta.value
+          } else if (wheelTrigger.deltaY === -100 && delta.value > -1000) {
             setDelta(delta.value -= 50)
-            burgija.x = delta.value
+            transformByX.x = delta.value
           }
         } else {
-          setDelta(delta.value = burgija.x)
+          setDelta(delta.value = transformByX.x)
         }
         d3.select(this)
           .selectAll('path')
@@ -146,7 +167,11 @@ const BarChart = ({ width, height, data }) => {
         d3.select(this)
           .select('#coban')
           .attr("transform", `translate(${delta.value}, ${370})`)
+
+        x = event.transform.rescaleX(referenceX)
       });
+
+    nestedSvg.call(zoom);
 
     var focus = nestedSvg.append('g')
       .append('circle')
@@ -160,43 +185,6 @@ const BarChart = ({ width, height, data }) => {
       .style('opacity', 0)
       .attr('text-anchor', 'left')
       .attr('alignment-baseline', 'middle')
-
-    // d3.select('#svg-main')
-    // .on("mouseover", function(){
-    //   return tooltip.style("visibility", "visible");
-    // })
-    // .on("mousemove", (event) => {
-
-    //   var x0 = x.invert(d3.pointer(event, this)[0]);
-    //   var i = bisect(data, x0, 1);
-    //   var selectedData = data[i]
-
-    //   console.log(selectedData.timestamp)
-    //   console.log(selectedData.rx)
-
-    //   let calcPageY = event.pageY;
-    //   let calcPageX = event.pageX;
-    //   if(calcPageX < 200) {
-    //     return tooltip.style('visibility', 'hidden')
-    //   } else {
-    //   return tooltip.style("top", (calcPageY-10)+"px")
-    //                 .style("left",(calcPageX+10)+"px")
-    //                 .style("visibility", "visible");
-    //   }
-    // })
-    // .on("mouseout", function(){
-    //   return tooltip.style("visibility", "hidden")
-    // });
-
-    nestedSvg.call(zoom);
-
-    const butka = (patak) => <Tooltip patak={patak} />
-
-    var voronoi = d3.Delaunay
-  .from(data, d => x(d.date), d => y(d.close))
-  .voronoi([0, 0, width * 2, height])
-
-  console.log(voronoi)
 
     nestedSvg.append('rect')
       .style('fill', 'none')
@@ -215,88 +203,17 @@ const BarChart = ({ width, height, data }) => {
           .attr('cx', x(selectedData.timestamp))
           .attr('cy', y(selectedData.rx))
         focusText
-          .html("x:" + selectedData.timestamp + "  -oip  " + "y:" + selectedData.rx)
+          .html("x:" + selectedData.timestamp + " - " + "y:" + selectedData.rx)
           .attr("x", x(selectedData.timestamp) + 15)
           .attr("y", y(selectedData.rx))
       })
-      .on('mouseout', mouseout)
-
-    // const tooltip = d3.select("body").append("div")
-    //   .attr("class", "svg-tooltip")
-    //   .style("position", "absolute")
-    //   .style("visibility", "hidden")
-    //   .text("bugraaa");
-
-    function mouseout() {
-      focus.style("opacity", 0)
-      focusText.style("opacity", 0)
-    }
+      .on('mouseout', () => {
+        focus.style("opacity", 0)
+        focusText.style("opacity", 0)
+      })
 
     var bisect = d3.bisector(d => d.timestamp).right;
 
-
-
-    /////////////////////////////
-    /////////////////////////////
-
-    var mouseLine = svg
-    .append("path") // create vertical line to follow mouse
-    .attr("class", "mouse-line")
-    .attr("stroke", "#303030")
-    .attr("stroke-width", 2)
-    .attr("opacity", "0");
-  
-    var parseTime = d3.timeParse("%H:%M");
-  
-    // group all dates to get range for x axis later
-    var dates = [];
-    // group y axis values (value) of all lines to x axis (key)
-    var groupValuesByX = {};
-  
-    var bucketNames = [];
-    for (let key of Object.keys(data)) {
-      bucketNames.push(key);
-    }
-    var availableDates = Object.keys(groupValuesByX);
-    availableDates.sort(); 
-  
-    console.log(bucketNames);
-
-    var tooltip = svg
-    .append("g")
-    .attr("class", "tooltip-wrapper")
-    .attr("display", "none");
-
-  var tooltipBackground = tooltip.append("rect").attr("fill", "#e8e8e8");
-
-  var tooltipText = tooltip.append("text");
-  
-  
-    function focusMouseMove(event) {
-      tooltip.attr("display", null);
-      var mouse = d3.pointer(event);
-      var dateOnMouse = x.invert(mouse[0]);
-      var nearestDateIndex = d3.bisect(availableDates, dateOnMouse.toString());
-      // get the dates on either of the mouse cord
-      var d0 = new Date(availableDates[nearestDateIndex - 1]);
-      var d1 = new Date(availableDates[nearestDateIndex]);
-      var closestDate;
-      if (d0 < x.domain()[0]) {
-        closestDate = d1;
-      } else if (d1 > x.domain()[1]) {
-        closestDate = d0;
-      } else {
-        // decide which date is closest to the mouse
-        closestDate = dateOnMouse - d0 > d1 - dateOnMouse ? d1 : d0;
-      }
-  
-      var nearestDateYValues = groupValuesByX[closestDate];
-      var nearestDateXCord = x(new Date(closestDate));
-      //console.log(nearestDateXCord)
-  
-      mouseLine.attr("d", `M ${nearestDateXCord} 0 V ${height}`).attr("opacity", "1");
-    }
-    svg.on('mousemove', focusMouseMove)
   }
 
   return (
@@ -307,3 +224,9 @@ const BarChart = ({ width, height, data }) => {
 }
 
 export default BarChart;
+
+    // const tooltip = d3.select("body").append("div")
+    //   .attr("class", "svg-tooltip")
+    //   .style("position", "absolute")
+    //   .style("visibility", "hidden")
+    //   .text("Tooltip area");

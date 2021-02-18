@@ -1,0 +1,67 @@
+/* svg g path {
+  transform: initial !important;
+} */
+
+g path:last-of-type {
+  transform: initial !important;
+}
+
+/* g {
+  transform: translateY(0) !important;
+} */
+
+/* .line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 2px;
+}
+
+.grid line {
+  stroke: lightgrey;
+  stroke-opacity: 0.7;
+  shape-rendering: crispEdges;
+}
+
+.grid path {
+  stroke-width: 0;
+} */
+
+/* text {
+  font-weight: 600;
+  font-size: 12px;
+  color: #aaa;
+}
+*/
+.x-axis .tick line {
+  stroke: #D9D9D9;
+}
+
+.y-axis .tick line {
+  stroke: #D9D9D9;
+} 
+
+.x-axis-grid g {
+  stroke: #D9D9D9;
+}
+
+.x-axis-grid g line {
+  stroke: #D9D9D9;
+  stroke-width: 1;
+}
+
+.y-axis-grid g line {
+  stroke: #D9D9D9;
+}
+
+.domain {
+  stroke: #d9d9d9;
+}
+
+.svg-tooltip {
+  background: #232323;
+  color: #fff;
+  display: block;
+  width: 220px;
+  height: 110px;
+  z-index: 177;
+}
