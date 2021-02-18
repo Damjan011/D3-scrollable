@@ -50,7 +50,7 @@ const BarChart = ({ width, height, data }) => {
       .style("fill", "#ffffff")
       .text(data.y));
 
-  const xGridlines = d3.axisBottom(x).tickSize(-350).tickFormat('').ticks(10);
+  const xGridlines = d3.axisBottom(x).tickSize(-350).tickFormat('').ticks(20);
 
   const yGridlines = d3.axisLeft(y).tickSize(-width).tickFormat('').ticks(5);
 
@@ -89,7 +89,7 @@ const BarChart = ({ width, height, data }) => {
       .attr("stroke-linejoin", "round")
       .attr("stroke-linecap", "round")
       .attr("id", 'thisisline')
-      .attr("d", line);
+      .attr("d", line)
 
     nestedSvg.append("path")
       .datum(data)
@@ -100,10 +100,12 @@ const BarChart = ({ width, height, data }) => {
       .attr("stroke-linecap", "round")
       .attr("d", line2);
 
-      // var pathEl = d3.select('#thisisline').node();
-      // var pathLength = pathEl.getTotalLength();
-      // var BBox = pathEl.getBBox();
-      // console.log(pathLength, BBox);
+    // var pathEl = d3.select('#thisisline').node();
+    // var pathLength = pathEl.getTotalLength();
+    // var BBox = pathEl.getBBox();
+
+    // var pos = pathEl.getPointAtLength(1800);
+    // console.log('fsda', pos)
 
     svg.append('g')
       .call(yAxis);
@@ -118,7 +120,6 @@ const BarChart = ({ width, height, data }) => {
       .on('zoom', function (event) {
         const burgija = event.transform;
         const patka = event.sourceEvent;
-        console.log(delta.value)
         burgija.k = 1;
         if (patka.deltaY) {
           if (patka.deltaY === 100 && delta.value < 10) {
@@ -141,19 +142,19 @@ const BarChart = ({ width, height, data }) => {
           .select('#coban')
           .attr("transform", `translate(${delta.value}, ${370})`)
       });
-    
-      var focus = nestedSvg.append('g')
+
+    var focus = nestedSvg.append('g')
       .append('circle')
-        .style('fill', 'none')
-        .attr('stroke', 'black')
-        .attr('r', 8.5)
-        .style('opacity', 0)
+      .style('fill', 'none')
+      .attr('stroke', 'black')
+      .attr('r', 8.5)
+      .style('opacity', 0)
 
     var focusText = nestedSvg.append('g')
       .append('text')
-        .style('opacity', 0)
-        .attr('text-anchor', 'left')
-        .attr('alignment-baseline', 'middle')
+      .style('opacity', 0)
+      .attr('text-anchor', 'left')
+      .attr('alignment-baseline', 'middle')
 
     // d3.select('#svg-main')
     // .on("mouseover", function(){
@@ -164,7 +165,7 @@ const BarChart = ({ width, height, data }) => {
     //   var x0 = x.invert(d3.pointer(event, this)[0]);
     //   var i = bisect(data, x0, 1);
     //   var selectedData = data[i]
-      
+
     //   console.log(selectedData.timestamp)
     //   console.log(selectedData.rx)
 
@@ -187,30 +188,25 @@ const BarChart = ({ width, height, data }) => {
     const butka = (patak) => <Tooltip patak={patak} />
 
     nestedSvg.append('rect')
-    .style('fill', 'none')
-    .style('pointer-events', 'all')
-    .attr('width', width)
-    .attr('height', height)
+      .style('fill', 'none')
+      .style('pointer-events', 'all')
+      .attr('width', width)
+      .attr('height', height)
       .on('mouseover', () => {
         focus.style('opacity', 1);
         focusText.style('opacity', 1);
       })
       .on('mousemove', (event) => {
-        console.log('jasam event x',event.x)
-        console.log(d3.select(this))
-        var bindThis = d3.select(this);
         var x0 = x.invert(d3.pointer(event)[0]);
-        console.log(x0)
         var i = bisect(data, x0, 1);
         var selectedData = data[i];
-        console.log(i)
         focus
           .attr('cx', x(selectedData.timestamp))
           .attr('cy', y(selectedData.rx))
         focusText
-        .html("x:" + selectedData.timestamp + "  -oipiopyioypoiyp  " + "y:" + selectedData.rx)
-        .attr("x", x(selectedData.timestamp)+15)
-        .attr("y", y(selectedData.rx))
+          .html("x:" + selectedData.timestamp + "  -oip  " + "y:" + selectedData.rx)
+          .attr("x", x(selectedData.timestamp) + 15)
+          .attr("y", y(selectedData.rx))
       })
       .on('mouseout', mouseout)
 
@@ -225,9 +221,9 @@ const BarChart = ({ width, height, data }) => {
       focusText.style("opacity", 0)
     }
 
-      var bisect = d3.bisector(function(d) { 
-        return d.timestamp; 
-      }).right;
+    var bisect = d3.bisector(function (d) {
+      return d.timestamp;
+    }).right;
 
   }
 
