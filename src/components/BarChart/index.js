@@ -54,6 +54,11 @@ const BarChart = ({ width, height, data }) => {
 
   const yGridlines = d3.axisLeft(y).tickSize(-width).tickFormat('').ticks(5);
 
+
+  /** */
+
+  /** */
+
   const drawGraph = () => {
     const svg = d3.select(ref.current)
       .attr("viewBox", [0, 0, width, height])
@@ -187,6 +192,12 @@ const BarChart = ({ width, height, data }) => {
 
     const butka = (patak) => <Tooltip patak={patak} />
 
+    var voronoi = d3.Delaunay
+  .from(data, d => x(d.date), d => y(d.close))
+  .voronoi([0, 0, width * 2, height])
+
+  console.log(voronoi)
+
     nestedSvg.append('rect')
       .style('fill', 'none')
       .style('pointer-events', 'all')
@@ -221,10 +232,71 @@ const BarChart = ({ width, height, data }) => {
       focusText.style("opacity", 0)
     }
 
-    var bisect = d3.bisector(function (d) {
-      return d.timestamp;
-    }).right;
+    var bisect = d3.bisector(d => d.timestamp).right;
 
+
+
+    /////////////////////////////
+    /////////////////////////////
+
+    var mouseLine = svg
+    .append("path") // create vertical line to follow mouse
+    .attr("class", "mouse-line")
+    .attr("stroke", "#303030")
+    .attr("stroke-width", 2)
+    .attr("opacity", "0");
+  
+    var parseTime = d3.timeParse("%H:%M");
+  
+    // group all dates to get range for x axis later
+    var dates = [];
+    // group y axis values (value) of all lines to x axis (key)
+    var groupValuesByX = {};
+  
+    var bucketNames = [];
+    for (let key of Object.keys(data)) {
+      bucketNames.push(key);
+    }
+    var availableDates = Object.keys(groupValuesByX);
+    availableDates.sort(); 
+  
+    console.log(bucketNames);
+
+    var tooltip = svg
+    .append("g")
+    .attr("class", "tooltip-wrapper")
+    .attr("display", "none");
+
+  var tooltipBackground = tooltip.append("rect").attr("fill", "#e8e8e8");
+
+  var tooltipText = tooltip.append("text");
+  
+  
+    function focusMouseMove(event) {
+      tooltip.attr("display", null);
+      var mouse = d3.pointer(event);
+      var dateOnMouse = x.invert(mouse[0]);
+      var nearestDateIndex = d3.bisect(availableDates, dateOnMouse.toString());
+      // get the dates on either of the mouse cord
+      var d0 = new Date(availableDates[nearestDateIndex - 1]);
+      var d1 = new Date(availableDates[nearestDateIndex]);
+      var closestDate;
+      if (d0 < x.domain()[0]) {
+        closestDate = d1;
+      } else if (d1 > x.domain()[1]) {
+        closestDate = d0;
+      } else {
+        // decide which date is closest to the mouse
+        closestDate = dateOnMouse - d0 > d1 - dateOnMouse ? d1 : d0;
+      }
+  
+      var nearestDateYValues = groupValuesByX[closestDate];
+      var nearestDateXCord = x(new Date(closestDate));
+      //console.log(nearestDateXCord)
+  
+      mouseLine.attr("d", `M ${nearestDateXCord} 0 V ${height}`).attr("opacity", "1");
+    }
+    svg.on('mousemove', focusMouseMove)
   }
 
   return (
