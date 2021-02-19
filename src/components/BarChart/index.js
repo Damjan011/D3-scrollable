@@ -4,10 +4,10 @@ import './style.css';
 
 const BarChart = ({ width, height, data }) => {
   const [delta, setDelta] = useState({ value: 0 });
-  //const [translateCurrentX, setTranslateCurrentX] = useState(0);
+  const [translateCurrentX, setTranslateCurrentX] = useState({value: 0});
   const ref = useRef();
 
-  var translateCurrentX;
+  //var translateCurrentX;
 
   useEffect(() => {
     const svg = d3.select(ref.current)
@@ -101,6 +101,8 @@ const BarChart = ({ width, height, data }) => {
       .attr('class', 'y-axis-grid');
 
     const drawLines = () => {
+      var lineContainer = nestedSvg.selectAll('path');
+      console.log(chart_data)
       nestedSvg.append("path")
       .datum(chart_data)
       .attr("fill", "none")
@@ -137,12 +139,12 @@ const BarChart = ({ width, height, data }) => {
       ])
       .scaleExtent([scale, scale])
       .on('zoom', function (event) {
-        var current_domain = x.domain()
-        var current_max = current_domain[1].getTime();
-        translateCurrentX = event.transform.x;
+        let transformer = event.transform.x;
+        console.log(transformer)
+        setTranslateCurrentX(translateCurrentX.value = event.transform.x);
         console.log('JA SAM TRANSLATECURRENTX', translateCurrentX);
         console.log('JA SAM MIN TRANSLATE X', min_translate_x)
-        if(translateCurrentX < min_translate_x) {
+        if(translateCurrentX.value < min_translate_x) {
           updateData();
           console.log('offset reached')
           drawLines()
@@ -150,12 +152,18 @@ const BarChart = ({ width, height, data }) => {
         }
         const transformByX = event.transform;
         const wheelTrigger = event.sourceEvent;
+        console.log('jasam delta',delta.value)
         transformByX.k = 1;
         if (wheelTrigger.deltaY) {
-          if (wheelTrigger.deltaY === 100 && delta.value < 10) {
+          if (wheelTrigger.deltaY === 100 && delta.value === 0) {
+            transformByX.x = 0;
+            setDelta(delta.value = 0)
+          } 
+          else if (wheelTrigger.deltaY === 100 && delta.value < 0) {
             setDelta(delta.value += 50)
             transformByX.x = delta.value
-          } else if (wheelTrigger.deltaY === -100 && delta.value > -1000) {
+          } 
+          else if (wheelTrigger.deltaY === -100 && delta.value > -1000) {
             setDelta(delta.value -= 50)
             transformByX.x = delta.value
           }
@@ -235,7 +243,8 @@ const BarChart = ({ width, height, data }) => {
 
       date_extent = d3.extent(chart_data, function (d) { return d.timestamp; });
       age_extent = d3.extent(chart_data, function (d) { return d.rx; });
-      min_translate_x = translateCurrentX - x(new Date(date_extent[0]));
+      //min_translate_x = translateCurrentX - x(new Date(date_extent[0]));
+      min_translate_x -= 1000;
       console.log('jasam min',min_translate_x)
     } 
   };
