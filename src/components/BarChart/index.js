@@ -1,12 +1,13 @@
 import * as d3 from 'd3';
 import React, { useRef, useEffect, useState } from 'react';
 import './style.css';
-import Tooltip from '../Tooltip';
 
 const BarChart = ({ width, height, data }) => {
   const [delta, setDelta] = useState({ value: 0 });
-  const [minTranslateX, setMinTranslateX] = useState(0);
+  //const [translateCurrentX, setTranslateCurrentX] = useState(0);
   const ref = useRef();
+
+  var translateCurrentX;
 
   useEffect(() => {
     const svg = d3.select(ref.current)
@@ -32,7 +33,7 @@ const BarChart = ({ width, height, data }) => {
     age_extent = d3.extent(chart_data, function (d) { return d.rx; }),
     now = new Date(2020, 12, 12),
     scale = 1.25,
-    min_translate_x = 0,
+    min_translate_x = -1000,
     max_translate_x;
 
   var x = d3.scaleUtc()
@@ -122,24 +123,6 @@ const BarChart = ({ width, height, data }) => {
 
     drawLines()
 
-    var group = nestedSvg.append('path').classed('point-group', true),
-    circles = group.selectAll('.point')
-                .data(chart_data)
-                .enter()
-                .append('circle')
-                .classed('point', true)
-                .attr('id', 'circlesId')
-                // .attr('cy', '2')
-                // .attr('cx', '2');
-                .attr({
-                  cx: function(d) { return x(new Date(d.timestamp)); },
-                  cy: function(d) { return y(d.rx); },
-                  fill: function(d) { return 'red'; },
-                  r: 9
-                })
-
-    nestedSvg.append(d3.select('#circlesId'))
-
     svg.append('g')
       .call(yAxis);
 
@@ -156,18 +139,15 @@ const BarChart = ({ width, height, data }) => {
       .on('zoom', function (event) {
         var current_domain = x.domain()
         var current_max = current_domain[1].getTime();
-        var cap = -999;
-        console.log(current_max)
-        if(event.transform.x < cap) {
+        translateCurrentX = event.transform.x;
+        console.log('JA SAM TRANSLATECURRENTX', translateCurrentX);
+        console.log('JA SAM MIN TRANSLATE X', min_translate_x)
+        if(translateCurrentX < min_translate_x) {
           updateData();
-          //addNewPoints();
           console.log('offset reached')
           drawLines()
-          cap -= 999;
+          //setTranslateCurrentX(event.transform.x)
         }
-
-        // console.log('jasam cur max',current_max)
-        console.log('jasam transform', event.transform)
         const transformByX = event.transform;
         const wheelTrigger = event.sourceEvent;
         transformByX.k = 1;
@@ -195,8 +175,6 @@ const BarChart = ({ width, height, data }) => {
       });
 
     nestedSvg.call(zoom);
-
-    
 
     max_translate_x = width - x(new Date(now));
 
@@ -253,14 +231,12 @@ const BarChart = ({ width, height, data }) => {
     if (chart_data.length < 50) {
       var new_data = fetchData();
       console.log('adding new data: ', new_data)
-      // Update the chart data
       chart_data = chart_data.concat(new_data);
 
-      // Update other dependent variables
       date_extent = d3.extent(chart_data, function (d) { return d.timestamp; });
       age_extent = d3.extent(chart_data, function (d) { return d.rx; });
-      console.log('ukupna data', chart_data)
-      //min_translate_x = pan.translate()[0] - x_scale(new Date(date_extent[0]));
+      min_translate_x = translateCurrentX - x(new Date(date_extent[0]));
+      console.log('jasam min',min_translate_x)
     } 
   };
 
