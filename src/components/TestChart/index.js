@@ -15,18 +15,6 @@
 //     min_translate_x = 0,
 //     max_translate_x;
 
-// // Get and save properties of the container
-// var chart_container = d3.select('.chart'),
-//     width = parseInt( chart_container.style('width') ),
-//     height = parseInt( chart_container.style('height') );
-
-// // Create SVG
-// var viz = chart_container.append('svg')
-//                  .attr({
-//                    width: width,
-//                    height: height
-//                  });
-    
 // // Create scales
 // var x_scale = d3.time.scale()
 //                 .domain([new Date(date_extent[0]), new Date(date_extent[1])])
@@ -68,14 +56,6 @@
 //                 .size([width, height])
 //                 .scaleExtent([scale, scale])
 //                 .on('zoom', function(e) {
-//                   var current_domain = x_scale.domain(),
-//                       current_max = current_domain[1].getTime();
-
-//                   // If we go past the max (i.e. now), reset translate to the max
-//                   if (!isNaN(max_translate_x) && current_max > now)
-//                     pan.translate([max_translate_x, 0]); 
-                  
-//                   // Update the data once user hits the point where current data ends
 //                   if (pan.translate()[0] > min_translate_x) {
 //                     updateData();
 //                     addNewPoints();
@@ -99,10 +79,7 @@
 
 // // Fetches data from the global variable (this is where you would make an ajax call)
 // function fetchData() {
-//     // Update offset and limit
 //     offset += 1; current_index = offset * limit;
-
-//     // Return "next page" (create indexes based off offset & limit)
 //     return data.slice(current_index, current_index + limit);
 // }
 
@@ -113,8 +90,7 @@
 //     console.log('adding new data: ', new_data)
 //     // Update the chart data
 //     chart_data = chart_data.concat(new_data);
-      
-//     // Update other dependent variables
+
 //     date_extent = d3.extent(chart_data, function(d) { return d.registered; });
 //     age_extent = d3.extent(chart_data, function(d) { return d.age; });
 //     min_translate_x = pan.translate()[0] - x_scale(new Date(date_extent[0]));

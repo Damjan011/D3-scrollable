@@ -3,26 +3,20 @@ import React, { useRef, useEffect, useState } from 'react';
 import './style.css';
 
 const BarChart = ({ width, height, data }) => {
-  const [delta, setDelta] = useState({ value: 0 });
   const [translateCurrentX, setTranslateCurrentX] = useState({value: 0});
   const ref = useRef();
-
-  //var translateCurrentX;
 
   useEffect(() => {
     const svg = d3.select(ref.current)
       .attr("width", width)
       .attr("height", height)
   }, []);
-
   useEffect(() => {
     drawGraph();
   }, [data]);
 
   const margin = ({ top: 20, right: 40, bottom: 30, left: 40 });
-
   data.sort((a, b) => a.timestamp - b.timestamp);
-
   var offset = 0,
     limit = 5,
     current_index = 5;
@@ -54,7 +48,7 @@ const BarChart = ({ width, height, data }) => {
     .x(d => x(d.timestamp))
     .y(d => y(d.tx))
 
-  const xAxis = g => g
+    const xAxis = g => g
     .attr("transform", `translate(0, ${height - margin.bottom})`)
     .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
 
@@ -85,9 +79,9 @@ const BarChart = ({ width, height, data }) => {
       .attr("width", 960)
       .attr('class', 'svg-inner')
 
-    nestedSvg.append('g')
+
+      nestedSvg.append('g')
       .call(xAxis)
-      .attr('class', 'x-axis')
 
     nestedSvg.append('g')
       .call(xGridlines)
@@ -101,8 +95,8 @@ const BarChart = ({ width, height, data }) => {
       .attr('class', 'y-axis-grid');
 
     const drawLines = () => {
-      var lineContainer = nestedSvg.selectAll('path');
-      console.log(chart_data)
+      nestedSvg.selectAll('path').remove()
+
       nestedSvg.append("path")
       .datum(chart_data)
       .attr("fill", "none")
@@ -123,74 +117,65 @@ const BarChart = ({ width, height, data }) => {
       .attr("d", line2);
     }
 
-    drawLines()
+    drawLines();
 
     svg.append('g')
-      .call(yAxis);
+    .call(yAxis);
 
     var referenceX = x.copy();
 
     const zoom = d3.zoom()
       .translateExtent([
         // Top Left corner
-        [-10, height],
+        [0, height],
         // Bottom right corner
-        [width * 2, 0]
+        [width * limit, 0]
       ])
       .scaleExtent([scale, scale])
       .on('zoom', function (event) {
-        let transformer = event.transform.x;
-        console.log(transformer)
         setTranslateCurrentX(translateCurrentX.value = event.transform.x);
-        console.log('JA SAM TRANSLATECURRENTX', translateCurrentX);
-        console.log('JA SAM MIN TRANSLATE X', min_translate_x)
+
+        x = event.transform.rescaleX(referenceX)
+
+
         if(translateCurrentX.value < min_translate_x) {
           updateData();
           console.log('offset reached')
-          drawLines()
-          //setTranslateCurrentX(event.transform.x)
+          drawLines();
         }
+
         const transformByX = event.transform;
-        const wheelTrigger = event.sourceEvent;
-        console.log('jasam delta',delta.value)
         transformByX.k = 1;
-        if (wheelTrigger.deltaY) {
-          if (wheelTrigger.deltaY === 100 && delta.value === 0) {
-            transformByX.x = 0;
-            setDelta(delta.value = 0)
-          } 
-          else if (wheelTrigger.deltaY === 100 && delta.value < 0) {
-            setDelta(delta.value += 50)
-            transformByX.x = delta.value
-          } 
-          else if (wheelTrigger.deltaY === -100 && delta.value > -1000) {
-            setDelta(delta.value -= 50)
-            transformByX.x = delta.value
-          }
-        } else {
-          setDelta(delta.value = transformByX.x)
-        }
         d3.select(this)
           .selectAll('path')
-          .attr("transform", `translate(${delta.value}, ${0})`)
+          .attr("transform", `translate(${transformByX.x}, ${0})`)
         d3.select(this)
           .select('g:first-of-type')
-          .attr("transform", `translate(${delta.value}, ${370})`);
+          .attr("transform", `translate(${transformByX.x}, ${370})`);
         d3.select(this)
           .select('#coban')
-          .attr("transform", `translate(${delta.value}, ${370})`)
-        x = event.transform.rescaleX(referenceX)
+          .attr("transform", `translate(${transformByX.x}, ${370})`)
       });
 
     nestedSvg.call(zoom);
 
     max_translate_x = width - x(new Date(now));
 
-    var focus = nestedSvg.append('g')
-      .append('circle')
-      .style('fill', 'none')
-      .attr('stroke', 'black')
-      .attr('r', 8.5)
+
+    const tooltip = d3.select("body").append("div")
+      .attr("class", "svg-tooltip")
+      .style("position", "absolute")
+      .style("visibility", "hidden")
+      .text("Tooltip area");
+
+    var focusLine = nestedSvg.append('g')
+      .append('line')
+      .style('stroke', 'black')
+      .attr('stroke-width', 3)
+      .attr('x1', 8.5)
+      .attr('x2', 8.5)
+      .attr('y1', 8.5)
+      .attr('y2', 8.5)
       .style('opacity', 0)
 
     var focusText = nestedSvg.append('g')
@@ -205,23 +190,25 @@ const BarChart = ({ width, height, data }) => {
       .attr('width', width)
       .attr('height', height)
       .on('mouseover', () => {
-        focus.style('opacity', 1);
+        focusLine.style('opacity', 1);
         focusText.style('opacity', 1);
       })
       .on('mousemove', (event) => {
         var x0 = x.invert(d3.pointer(event)[0]);
         var i = bisect(data, x0, 1);
         var selectedData = data[i];
-        focus
-          .attr('cx', x(selectedData.timestamp))
-          .attr('cy', y(selectedData.rx))
+        focusLine
+          .attr('x1', x(selectedData.timestamp))
+          .attr('x2', x(selectedData.timestamp))
+          .attr('y1', 0)
+          .attr('y2', 0)
         focusText
           .html("x:" + selectedData.timestamp + " - " + "y:" + selectedData.rx)
           .attr("x", x(selectedData.timestamp) + 15)
           .attr("y", y(selectedData.rx))
       })
       .on('mouseout', () => {
-        focus.style("opacity", 0)
+        focusLine.style("opacity", 0)
         focusText.style("opacity", 0)
       })
 
@@ -243,9 +230,7 @@ const BarChart = ({ width, height, data }) => {
 
       date_extent = d3.extent(chart_data, function (d) { return d.timestamp; });
       age_extent = d3.extent(chart_data, function (d) { return d.rx; });
-      //min_translate_x = translateCurrentX - x(new Date(date_extent[0]));
       min_translate_x -= 1000;
-      console.log('jasam min',min_translate_x)
     } 
   };
 
@@ -265,12 +250,3 @@ const BarChart = ({ width, height, data }) => {
 }
 
 export default BarChart;
-
-    // const tooltip = d3.select("body").append("div")
-    //   .attr("class", "svg-tooltip")
-    //   .style("position", "absolute")
-    //   .style("visibility", "hidden")
-    //   .text("Tooltip area");
-
-
-    //test
