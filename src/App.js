@@ -179,14 +179,12 @@ function App() {
     //     },
     //   ])
     //   console.log('desio sam se')
-    // }, 30000)
+    // }, 5000)
   }, [])
 
   return (
     <div className="app">
       <BarChart width={1000} height={400} data={data} />
-
-      {/* <TestChart data={newData} width={595} height={220} /> */}
     </div>
   );
 }

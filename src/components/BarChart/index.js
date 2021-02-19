@@ -5,10 +5,10 @@ import Tooltip from '../Tooltip';
 
 const BarChart = ({ width, height, data }) => {
   const [delta, setDelta] = useState({ value: 0 });
+  const [minTranslateX, setMinTranslateX] = useState(0);
   const ref = useRef();
 
   useEffect(() => {
-    
     const svg = d3.select(ref.current)
       .attr("width", width)
       .attr("height", height)
@@ -20,32 +20,26 @@ const BarChart = ({ width, height, data }) => {
 
   const margin = ({ top: 20, right: 40, bottom: 30, left: 40 });
 
-// New implementation
-
   data.sort((a, b) => a.timestamp - b.timestamp);
 
   var offset = 0,
-    limit = 10,
-    current_index = 10;
+    limit = 5,
+    current_index = 5;
 
   // Useful datapoints (data variable included from external file)
-var chart_data = data.slice(offset, limit),
-date_extent = d3.extent(chart_data, function(d) { return d.timestamp; }),
-age_extent = d3.extent(chart_data, function(d) { return d.rx; }),
-now = new Date(2015, 8, 16),
-scale = 1.25,
-min_translate_x = 0,
-max_translate_x; // Calculated after initial scaling
-
+  var chart_data = data.slice(offset, limit),
+    date_extent = d3.extent(chart_data, function (d) { return d.timestamp; }),
+    age_extent = d3.extent(chart_data, function (d) { return d.rx; }),
+    now = new Date(2020, 12, 12),
+    scale = 1.25,
+    min_translate_x = 0,
+    max_translate_x;
 
   var x = d3.scaleUtc()
     .domain([new Date(date_extent[0]), new Date(date_extent[1])])
     .range([0, width])
-
   // old domain console.log(d3.extent(data, d => d.timestamp))
   // old range was 2000
-
-  
 
   const y = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.rx)]).nice()
@@ -60,7 +54,7 @@ max_translate_x; // Calculated after initial scaling
     .y(d => y(d.tx))
 
   const xAxis = g => g
-    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .attr("transform", `translate(0, ${height - margin.bottom})`)
     .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
 
   const yAxis = g => g
@@ -105,8 +99,9 @@ max_translate_x; // Calculated after initial scaling
       .call(yGridlines)
       .attr('class', 'y-axis-grid');
 
-    nestedSvg.append("path")
-      .datum(data)
+    const drawLines = () => {
+      nestedSvg.append("path")
+      .datum(chart_data)
       .attr("fill", "none")
       .attr("stroke", "#6EE294")
       .attr("stroke-width", 4)
@@ -116,20 +111,34 @@ max_translate_x; // Calculated after initial scaling
       .attr("d", line)
 
     nestedSvg.append("path")
-      .datum(data)
+      .datum(chart_data)
       .attr("fill", "none")
       .attr("stroke", "#5F72FF")
       .attr("stroke-width", 4)
       .attr("stroke-linejoin", "round")
       .attr("stroke-linecap", "round")
       .attr("d", line2);
+    }
 
-    // var pathEl = d3.select('#thisisline').node();
-    // var pathLength = pathEl.getTotalLength();
-    // var BBox = pathEl.getBBox();
+    drawLines()
 
-    // var pos = pathEl.getPointAtLength(1800);
-    // console.log('fsda', pos)
+    var group = nestedSvg.append('path').classed('point-group', true),
+    circles = group.selectAll('.point')
+                .data(chart_data)
+                .enter()
+                .append('circle')
+                .classed('point', true)
+                .attr('id', 'circlesId')
+                // .attr('cy', '2')
+                // .attr('cx', '2');
+                .attr({
+                  cx: function(d) { return x(new Date(d.timestamp)); },
+                  cy: function(d) { return y(d.rx); },
+                  fill: function(d) { return 'red'; },
+                  r: 9
+                })
+
+    nestedSvg.append(d3.select('#circlesId'))
 
     svg.append('g')
       .call(yAxis);
@@ -143,7 +152,22 @@ max_translate_x; // Calculated after initial scaling
         // Bottom right corner
         [width * 2, 0]
       ])
+      .scaleExtent([scale, scale])
       .on('zoom', function (event) {
+        var current_domain = x.domain()
+        var current_max = current_domain[1].getTime();
+        var cap = -999;
+        console.log(current_max)
+        if(event.transform.x < cap) {
+          updateData();
+          //addNewPoints();
+          console.log('offset reached')
+          drawLines()
+          cap -= 999;
+        }
+
+        // console.log('jasam cur max',current_max)
+        console.log('jasam transform', event.transform)
         const transformByX = event.transform;
         const wheelTrigger = event.sourceEvent;
         transformByX.k = 1;
@@ -167,11 +191,14 @@ max_translate_x; // Calculated after initial scaling
         d3.select(this)
           .select('#coban')
           .attr("transform", `translate(${delta.value}, ${370})`)
-
         x = event.transform.rescaleX(referenceX)
       });
 
     nestedSvg.call(zoom);
+
+    
+
+    max_translate_x = width - x(new Date(now));
 
     var focus = nestedSvg.append('g')
       .append('circle')
@@ -216,10 +243,39 @@ max_translate_x; // Calculated after initial scaling
 
   }
 
+  function fetchData() {
+    offset += 1; 
+    current_index = offset * limit;
+    return data.slice(current_index, current_index + limit);
+  }
+
+  function updateData() {
+    if (chart_data.length < 50) {
+      var new_data = fetchData();
+      console.log('adding new data: ', new_data)
+      // Update the chart data
+      chart_data = chart_data.concat(new_data);
+
+      // Update other dependent variables
+      date_extent = d3.extent(chart_data, function (d) { return d.timestamp; });
+      age_extent = d3.extent(chart_data, function (d) { return d.rx; });
+      console.log('ukupna data', chart_data)
+      //min_translate_x = pan.translate()[0] - x_scale(new Date(date_extent[0]));
+    } 
+  };
+
   return (
-    <div className="chart">
-      <svg style={{ padding: '10px', position: 'relative' }} ref={ref} />
-    </div>
+    <>
+      <div className="chart">
+        <svg style={{ padding: '10px', position: 'relative' }} ref={ref} />
+      </div>
+
+      <button style={{marginTop: '20px', padding: '10px'}} onClick={() => {
+        updateData();
+        }}>
+        KLIKNI ME
+      </button>
+    </>
   )
 }
 
