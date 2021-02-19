@@ -271,3 +271,6 @@ export default BarChart;
     //   .style("position", "absolute")
     //   .style("visibility", "hidden")
     //   .text("Tooltip area");
+
+
+    //test
