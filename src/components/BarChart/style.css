@@ -103,7 +103,7 @@ text {
   z-index: 1;
   position: absolute;
   opacity: 0;
-  top: -151px;
+  top: -110px;
 }
 
 .ui-tooltip-top {
@@ -175,7 +175,7 @@ text {
 
 .ui-tooltip-line {
   width: 1px;
-  height: 358px;
+  height: 167px;
   position: absolute;
   background: black;
   left: 109px;
@@ -186,7 +186,7 @@ text {
   height: 3px;
   background: black;
   position: absolute;
-  top: 357px;
+  bottom: 0;
   left: -11px;
   border-radius: 1px;
 }
@@ -217,4 +217,12 @@ text {
   color: #777777;
   margin-bottom: 10px;
   margin-top: 15px;
+}
+
+.left-offset {
+  left: 12px;
+}
+
+.right-offset {
+  left: 207px;
 }
