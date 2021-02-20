@@ -2,24 +2,32 @@ import * as d3 from 'd3';
 import React, { useRef, useEffect, useState } from 'react';
 import './style.css';
 
-const BarChart = ({ width, height, data }) => {
+const BarChart = ({ height, data }) => {
   const [translateCurrentX, setTranslateCurrentX] = useState({value: 0});
+  const [timeStamp, setTimestamp] = useState(0);
+  const [rx, setRx] = useState(0);
+  const [tx, setTx] = useState(0);
+  const [width, setWidth] = useState(0);
   const ref = useRef();
 
+
   useEffect(() => {
+    setWidth(parseInt(d3.select('#bandwidth-usage').style('width'), 10) - 40);
     const svg = d3.select(ref.current)
       .attr("width", width)
       .attr("height", height)
-  }, []);
+  }, [width]);
   useEffect(() => {
+    
+    console.log(width)
     drawGraph();
-  }, [data]);
+  }, [data, width]);
 
-  const margin = ({ top: 20, right: 40, bottom: 30, left: 40 });
+  const margin = ({ top: 10, right: 10, bottom: 0, left: 40 });
   data.sort((a, b) => a.timestamp - b.timestamp);
   var offset = 0,
-    limit = 5,
-    current_index = 5;
+    limit = 10,
+    current_index = 10;
 
   // Useful datapoints (data variable included from external file)
   var chart_data = data.slice(offset, limit),
@@ -38,7 +46,7 @@ const BarChart = ({ width, height, data }) => {
 
   const y = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.rx)]).nice()
-    .range([height - margin.bottom, margin.top])
+    .range([height - 30, margin.top])
 
   const line = d3.line()
     .x(d => x(d.timestamp))
@@ -49,12 +57,12 @@ const BarChart = ({ width, height, data }) => {
     .y(d => y(d.tx))
 
     const xAxis = g => g
-    .attr("transform", `translate(0, ${height - margin.bottom})`)
-    .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
+    .attr("transform", `translate(0, ${height - 30})`)
+    .call(d3.axisBottom(x).ticks(width / 80).tickSize(0).tickPadding(5))
 
   const yAxis = g => g
-    .attr("transform", `translate(960,0)`)
-    .call(d3.axisRight(y))
+    .attr("transform", `translate(${width-20},0)`)
+    .call(d3.axisRight(y).ticks(5).tickSize(0).tickPadding(5))
     .call(g => g.select(".tick:last-of-type text").clone()
       .attr("x", 3)
       .attr("y", 3)
@@ -63,7 +71,11 @@ const BarChart = ({ width, height, data }) => {
       .style("fill", "#ffffff")
       .text(data.y));
 
-  const xGridlines = d3.axisBottom(x).tickSize(-350).tickFormat('').ticks(20);
+  const emptyAxis = g => g
+  .attr("transform", `translate(${0},0)`)
+    .call(d3.axisRight(y).tickSize(0));
+
+  const xGridlines = d3.axisBottom(x).tickSize(-(height -40)).tickFormat('').ticks(10);
 
   const yGridlines = d3.axisLeft(y).tickSize(-width).tickFormat('').ticks(5);
 
@@ -76,9 +88,8 @@ const BarChart = ({ width, height, data }) => {
     const nestedSvg = svg.append("svg")
       .attr("viewBox", [width, height])
       .attr("id", "svg-inner")
-      .attr("width", 960)
+      .attr("width", width -20)
       .attr('class', 'svg-inner')
-
 
       nestedSvg.append('g')
       .call(xAxis)
@@ -122,6 +133,10 @@ const BarChart = ({ width, height, data }) => {
     svg.append('g')
     .call(yAxis);
 
+    svg.append('g')
+    .call(emptyAxis)
+    .attr('class', 'empty-axis')
+
     var referenceX = x.copy();
 
     const zoom = d3.zoom()
@@ -133,11 +148,12 @@ const BarChart = ({ width, height, data }) => {
       ])
       .scaleExtent([scale, scale])
       .on('zoom', function (event) {
+        console.log(event.transform.x)
         setTranslateCurrentX(translateCurrentX.value = event.transform.x);
-
+        d3.select('#tooltip')
+        .style("opacity", 0)
         x = event.transform.rescaleX(referenceX)
-
-
+     
         if(translateCurrentX.value < min_translate_x) {
           updateData();
           console.log('offset reached')
@@ -151,38 +167,15 @@ const BarChart = ({ width, height, data }) => {
           .attr("transform", `translate(${transformByX.x}, ${0})`)
         d3.select(this)
           .select('g:first-of-type')
-          .attr("transform", `translate(${transformByX.x}, ${370})`);
+          .attr("transform", `translate(${transformByX.x}, ${height - 30})`);
         d3.select(this)
           .select('#coban')
-          .attr("transform", `translate(${transformByX.x}, ${370})`)
+          .attr("transform", `translate(${transformByX.x}, ${height - 30})`)
       });
 
     nestedSvg.call(zoom);
 
     max_translate_x = width - x(new Date(now));
-
-
-    const tooltip = d3.select("body").append("div")
-      .attr("class", "svg-tooltip")
-      .style("position", "absolute")
-      .style("visibility", "hidden")
-      .text("Tooltip area");
-
-    var focusLine = nestedSvg.append('g')
-      .append('line')
-      .style('stroke', 'black')
-      .attr('stroke-width', 3)
-      .attr('x1', 8.5)
-      .attr('x2', 8.5)
-      .attr('y1', 8.5)
-      .attr('y2', 8.5)
-      .style('opacity', 0)
-
-    var focusText = nestedSvg.append('g')
-      .append('text')
-      .style('opacity', 0)
-      .attr('text-anchor', 'left')
-      .attr('alignment-baseline', 'middle')
 
     nestedSvg.append('rect')
       .style('fill', 'none')
@@ -190,30 +183,28 @@ const BarChart = ({ width, height, data }) => {
       .attr('width', width)
       .attr('height', height)
       .on('mouseover', () => {
-        focusLine.style('opacity', 1);
-        focusText.style('opacity', 1);
+        d3.select('#tooltip')
+        .style('opacity', 0)
       })
       .on('mousemove', (event) => {
+        console.log(event)
         var x0 = x.invert(d3.pointer(event)[0]);
         var i = bisect(data, x0, 1);
         var selectedData = data[i];
-        focusLine
-          .attr('x1', x(selectedData.timestamp))
-          .attr('x2', x(selectedData.timestamp))
-          .attr('y1', 0)
-          .attr('y2', 0)
-        focusText
-          .html("x:" + selectedData.timestamp + " - " + "y:" + selectedData.rx)
-          .attr("x", x(selectedData.timestamp) + 15)
-          .attr("y", y(selectedData.rx))
+        setTimestamp(selectedData.timestamp)
+        setRx(selectedData.rx)
+        setTx(selectedData.tx)
+        d3.select('#tooltip')
+          .style('position', 'absolute')
+          .style('left', event.offsetX - 100 + 'px')
+          .style('opacity', 1)
       })
       .on('mouseout', () => {
-        focusLine.style("opacity", 0)
-        focusText.style("opacity", 0)
+        d3.select('#tooltip')
+        .style("opacity", 0)
       })
 
     var bisect = d3.bisector(d => d.timestamp).right;
-
   }
 
   function fetchData() {
@@ -236,15 +227,64 @@ const BarChart = ({ width, height, data }) => {
 
   return (
     <>
-      <div className="chart">
-        <svg style={{ padding: '10px', position: 'relative' }} ref={ref} />
+        <div id="bandwidth-usage" className="ui-box" style={{ padding: '20px', overflow: 'visible' }}>
+      <div className="ui-graph-labels">
+        <div className="ui-graph-labels-inner">
+          <div className="ui-graph-main-label">
+            <p>Bandwidth Usage</p>
+          </div>
+          <div className="ui-graph-time-label">
+            <p>1 hour</p>
+          </div>
+        </div>
+        <div className="ui-graph-date-label">
+          <p>24 Jan 2020</p>
+        </div>
       </div>
-
-      <button style={{marginTop: '20px', padding: '10px'}} onClick={() => {
-        updateData();
-        }}>
-        KLIKNI ME
-      </button>
+      <div className="chart" style={{position: 'relative'}}>
+        <svg ref={ref} />
+        <div id="tooltip" className="custom-tooltip" >
+        <div className="ui-tooltip-top">
+          <div className="ui-tooltip-label">
+            <p>{timeStamp}</p>
+          </div>
+            <div className="ui-tooltip-values">
+              { rx &&
+              <div className="ui-tooltip-green">
+                <p>{rx} Kb</p>
+              </div>
+              }
+              { tx &&
+              <div className="ui-tooltip-blue">
+                <p>{tx} Mb</p>
+              </div>
+              }
+            </div>
+        </div>
+        <div className="ui-tooltip-body">
+          <div className="ui-tooltip-row">
+            <div className="ui-tooltip-image-wrapper">
+              <img className="ui-tooltip-image" src='' alt="Tooltip user" />
+            </div>
+            <div className="ui-tooltip-row-label">
+              <p>Alice</p>
+            </div>
+          </div>
+          <div className="ui-tooltip-row">
+            <div className="ui-tooltip-image-wrapper">
+              <img className="ui-tooltip-image" src='' alt="Tooltip service" />
+            </div>
+            <div className="ui-tooltip-row-label">
+              <p>Netflix Streaming Services</p>
+            </div>
+          </div>
+        </div>
+        <div className="ui-tooltip-line">
+          <div className="ui-tooltip-line-bottom"></div>
+        </div>
+      </div>
+      </div>
+      </div>
     </>
   )
 }

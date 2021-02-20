@@ -70,11 +70,6 @@
 
 // viz.call(pan);
 
-// // Now that we've scaled in, find the farthest point that
-// // we'll allow users to pan forward in time (to the right)
-// max_translate_x = width - x_scale(new Date(now));
-// viz.call(pan.translate([max_translate_x, 0]).event); 
-
 // /* Functions */
 
 // // Fetches data from the global variable (this is where you would make an ajax call)
@@ -112,7 +107,6 @@
 //         fill: function(d) { return d.color; },
 //         r: 4
 //       });
-  
-//   // Update selection
+
 //   circles = group.selectAll('circle.point');
 // };
