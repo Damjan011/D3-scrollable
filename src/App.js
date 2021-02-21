@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import BarChart from './components/BarChart';
+import BandwidthGraph from './components/BandwidthGraph';
+import HealthGraph from './components/HealthGraph';
 
 const newData = [
   {
@@ -187,11 +188,11 @@ function App() {
         <p>Sidebar</p>
       </div>
       <div style={{paddingTop: '100px'}} className="main-content">
-      <BarChart width={800} height={190} data={data} />
+      <BandwidthGraph width={800} height={190} data={data} />
+      {/* <div className="break"></div>
+      <HealthGraph width={800} height={190} data={data} /> */}
       <div className="break"></div>
-      <BarChart width={800} height={190} data={data} />
-      <div className="break"></div>
-      <BarChart width={800} height={190} data={data} />
+      <HealthGraph width={800} height={190} data={data} />
       </div>
     </div>
   );
