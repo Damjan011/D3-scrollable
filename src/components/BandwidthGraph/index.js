@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import React, { useRef, useEffect, useState } from 'react';
 import './style.css';
 
-const BandwidthGraph = ({ data }) => {
+const BandwidthGraph = ({ data, height }) => {
   const [translateCurrentX, setTranslateCurrentX] = useState({ value: 0 });
   const [timeStamp, setTimestamp] = useState(0);
   const [rx, setRx] = useState(0);
@@ -10,14 +10,10 @@ const BandwidthGraph = ({ data }) => {
   const [width, setWidth] = useState(500);
   const [leftOffset, setLeftOffset] = useState(false);
   const [rightOffset, setRightOffset] = useState(false);
-  const [initial, setInitial] = useState(true);
-  const [height, setHeight] = useState(180)
   const ref = useRef();
 
   useEffect(() => {
     setWidth(parseInt(d3.select('#bandwidth-usage').style('width'), 10) - 40);
-    setHeight(180)
-    //drawGraph();
   }, []);
   
   // useEffect(() => {
@@ -33,7 +29,7 @@ const BandwidthGraph = ({ data }) => {
   }, [data]);
 
   const margin = ({ top: 10, right: 10, bottom: 0, left: 40 });
-  data.sort((a, b) => a.timestamp - b.timestamp);
+  //data.sort((a, b) => a.timestamp - b.timestamp);
   var offset = 0,
     limit = 10,
     current_index = 10;
@@ -49,9 +45,7 @@ const BandwidthGraph = ({ data }) => {
 
   var x = d3.scaleUtc()
     .domain([new Date(date_extent[0]), new Date(date_extent[1])])
-    .range([0, width])
-  // old domain console.log(d3.extent(data, d => d.timestamp))
-  // old range was 2000
+    .range([-2000, width])
 
   const y = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.rx)]).nice()
@@ -67,7 +61,7 @@ const BandwidthGraph = ({ data }) => {
 
   const xAxis = g => g
     .attr("transform", `translate(0, ${height - 30})`)
-    .call(d3.axisBottom(x).ticks(width / 80).tickSize(0).tickPadding(5))
+    .call(d3.axisBottom(x).ticks(width / 50).tickSize(0).tickPadding(5))
 
   const yAxis = g => g
     .attr("transform", `translate(${width - 20},0)`)
@@ -84,36 +78,37 @@ const BandwidthGraph = ({ data }) => {
     .attr("transform", `translate(${0},0)`)
     .call(d3.axisRight(y).tickSize(0));
 
-  const xGridlines = d3.axisBottom(x).tickSize(-(height - 40)).tickFormat('').ticks(10);
+  const xGridlines = d3.axisBottom(x).tickSize(-(height - 40)).tickFormat('').ticks(20);
 
   const yGridlines = d3.axisLeft(y).tickSize(-width).tickFormat('').ticks(5);
 
-  const deleteGraph= () => {
+  const deleteGraph = () => {
     d3.select("#main-container-svg").selectAll('svg').remove();
   }
 
   const drawGraph = () => {
-    deleteGraph()
+    deleteGraph();
     const svg = d3.select(ref.current)
       .attr("viewBox", [0, 0, width, height])
-      // .attr('width', width)
-      // .attr('height', height)
-      .attr('preserveAspectRatio', 'xMaxYMin slice')
+      .attr('width', '100%')
+      .attr('height', height)
+      .attr('preserveAspectRatio', 'none')
       .attr('id', 'svg-main')
       .attr("cursor", "grab")
 
     const nestedSvg = svg.append("svg")
       .attr("viewBox", [width, height])
-      // .attr('width', width)
-      // .attr('height', height)
-      .attr('preserveAspectRatio', 'xMaxYMin slice')
+      .attr('width', '100%')
+      .attr('height', height)
+      .attr('preserveAspectRatio', 'none')
       .attr("id", "svg-inner")
       .attr("width", width - 20)
       .attr('class', 'svg-inner')
 
     nestedSvg.append('g')
+    .attr('font-stretch', 'unset')
       .call(xAxis)
-
+      
     nestedSvg.append('g')
       .call(xGridlines)
       .attr('transform', `translate(0, ${height - 30})`)
@@ -164,26 +159,26 @@ const BandwidthGraph = ({ data }) => {
     const zoom = d3.zoom()
       .translateExtent([
         // Top Left corner
-        [0, height],
+        [-2000, height],
         // Bottom right corner
-        [width * 2, 0]
+        [width, 0]
       ])
       .scaleExtent([scale, scale])
       .on('zoom', function (event) {
         setTranslateCurrentX(translateCurrentX.value = event.transform.x);
-        d3.select('#tooltip')
-          .style("opacity", 0)
-        x = event.transform.rescaleX(referenceX)
 
+        x = event.transform.rescaleX(referenceX)
         if (translateCurrentX.value < min_translate_x) {
           updateData();
           console.log('offset reached')
           drawLines();
         }
-
         const transformByX = event.transform;
         transformByX.k = 1;
-        d3.select(this)
+        if(isNaN(event.sourceEvent.deltaY)) {
+          d3.select('#tooltip')
+          .style("opacity", 0)
+          d3.select(this)
           .selectAll('path')
           .attr("transform", `translate(${transformByX.x}, ${0})`)
         d3.select(this)
@@ -192,6 +187,8 @@ const BandwidthGraph = ({ data }) => {
         d3.select(this)
           .select('#x-grid-lines')
           .attr("transform", `translate(${transformByX.x}, ${height - 30})`)
+        }
+
       });
 
     nestedSvg.call(zoom);
@@ -207,10 +204,9 @@ const BandwidthGraph = ({ data }) => {
       .attr('height', height)
       .on('mouseover', () => {
         d3.select('#tooltip')
-          .style('opacity', 0)
+          .style('opacity', 0);
       })
       .on('mousemove', (event) => {
-        console.log(event)
         var x0 = x.invert(d3.pointer(event)[0]);
         var i = bisect(data, x0, 1);
         var selectedData = data[i];
@@ -222,7 +218,6 @@ const BandwidthGraph = ({ data }) => {
             .style('position', 'absolute')
             .style('left', event.offsetX - 100 + 'px')
             .style('opacity', 1)
-          console.log('jasam ofsetx s',event.offsetX)
           if(event.offsetX < 80) {
             d3.select('#tooltip')
             .style('left', event.offsetX + 'px')
@@ -230,7 +225,7 @@ const BandwidthGraph = ({ data }) => {
           } else {
             setLeftOffset(false)
           }
-          if (event.offsetX > width - 100) {
+          if (event.offsetX > parseInt(d3.select('#bandwidth-usage').style('width'), 10) - 40 - 100) {
             d3.select('#tooltip')
             .style('left', event.offsetX - 200 + 'px')
             setRightOffset(true)
@@ -253,6 +248,9 @@ const BandwidthGraph = ({ data }) => {
   d3.select(window).on('resize', resize); 
 
   function resize() {
+    const text = d3.selectAll('text');
+    text.attr("transform","scale(" + 0.9 + " " + 0.9 + ")");
+    console.log(scale);
   setWidth(parseInt(d3.select('#bandwidth-usage').style('width'), 10) - 40);
 }
 
@@ -291,7 +289,7 @@ const BandwidthGraph = ({ data }) => {
           </div>
         </div>
         <div id="bandwidth-graph" className="chart" style={{ position: 'relative' }}>
-          <svg id="main-container-svg" ref={ref} />
+          <svg ref={ref} id="main-container-svg"  />
           <div id="tooltip" className="custom-tooltip" >
             <div className="ui-tooltip-top">
               <div className="ui-tooltip-label">
