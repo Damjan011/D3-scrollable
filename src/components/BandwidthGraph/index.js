@@ -2,28 +2,35 @@ import * as d3 from 'd3';
 import React, { useRef, useEffect, useState } from 'react';
 import './style.css';
 
-const BandwidthGraph = ({ height, data }) => {
+const BandwidthGraph = ({ data }) => {
   const [translateCurrentX, setTranslateCurrentX] = useState({ value: 0 });
   const [timeStamp, setTimestamp] = useState(0);
   const [rx, setRx] = useState(0);
   const [tx, setTx] = useState(0);
-  const [width, setWidth] = useState(0);
+  const [width, setWidth] = useState(500);
   const [leftOffset, setLeftOffset] = useState(false);
   const [rightOffset, setRightOffset] = useState(false);
+  const [initial, setInitial] = useState(true);
+  const [height, setHeight] = useState(180)
   const ref = useRef();
 
   useEffect(() => {
-    deleteGraph()
-    console.log(width)
-    drawGraph();
-  }, [data, width]);
-
-  useEffect(() => {
     setWidth(parseInt(d3.select('#bandwidth-usage').style('width'), 10) - 40);
-    const svg = d3.select(ref.current)
-      .attr("width", width)
-      .attr("height", height)
-  }, [width]);
+    setHeight(180)
+    //drawGraph();
+  }, []);
+  
+  // useEffect(() => {
+  //   setWidth(parseInt(d3.select('#bandwidth-usage').style('width'), 10) - 40);
+  //   const svg = d3.select(ref.current)
+  //     .attr("width", width)
+  //     .attr("height", height)
+  // }, [data, width]);
+  
+  useEffect(() => {
+    deleteGraph()
+    drawGraph();
+  }, [data]);
 
   const margin = ({ top: 10, right: 10, bottom: 0, left: 40 });
   data.sort((a, b) => a.timestamp - b.timestamp);
@@ -86,16 +93,20 @@ const BandwidthGraph = ({ height, data }) => {
   }
 
   const drawGraph = () => {
-    
-
-
+    deleteGraph()
     const svg = d3.select(ref.current)
       .attr("viewBox", [0, 0, width, height])
+      // .attr('width', width)
+      // .attr('height', height)
+      .attr('preserveAspectRatio', 'xMaxYMin slice')
       .attr('id', 'svg-main')
       .attr("cursor", "grab")
 
     const nestedSvg = svg.append("svg")
       .attr("viewBox", [width, height])
+      // .attr('width', width)
+      // .attr('height', height)
+      .attr('preserveAspectRatio', 'xMaxYMin slice')
       .attr("id", "svg-inner")
       .attr("width", width - 20)
       .attr('class', 'svg-inner')
@@ -238,6 +249,12 @@ const BandwidthGraph = ({ height, data }) => {
 
     var bisect = d3.bisector(d => d.timestamp).right;
   }
+
+  d3.select(window).on('resize', resize); 
+
+  function resize() {
+  setWidth(parseInt(d3.select('#bandwidth-usage').style('width'), 10) - 40);
+}
 
   function fetchData() {
     offset += 1;
