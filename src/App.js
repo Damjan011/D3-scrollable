@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import BarChart from './components/BarChart';
-import TestChart from './components/TestChart';
 
 const newData = [
   {
@@ -184,7 +183,16 @@ function App() {
 
   return (
     <div className="app">
-      <BarChart width={1000} height={400} data={data} />
+      <div className="side-bar">
+        <p>Sidebar</p>
+      </div>
+      <div style={{paddingTop: '100px'}} className="main-content">
+      <BarChart width={800} height={190} data={data} />
+      <div className="break"></div>
+      <BarChart width={800} height={190} data={data} />
+      <div className="break"></div>
+      <BarChart width={800} height={190} data={data} />
+      </div>
     </div>
   );
 }
