@@ -183,7 +183,16 @@ function App() {
 
   return (
     <div className="app">
+      <div className="side-bar">
+        <p>Sidebar</p>
+      </div>
+      <div style={{paddingTop: '100px'}} className="main-content">
       <BarChart width={800} height={190} data={data} />
+      <div className="break"></div>
+      <BarChart width={800} height={190} data={data} />
+      <div className="break"></div>
+      <BarChart width={800} height={190} data={data} />
+      </div>
     </div>
   );
 }

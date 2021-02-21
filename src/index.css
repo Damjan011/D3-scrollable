@@ -12,20 +12,38 @@ p {
 }
 
 .app {
-  background: #242424;
+  background: #fafafa;
   height: 100vh;
   width: 100vw;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  
 }
 
-.chart {
-  /* background: white;
+.side-bar {
+  height: 100vh;
+  width: 220px;
+  background: white;
+  border-right: 1px solid #eee;
+}
+
+.main-content {
   display: flex;
-  width: fit-content;
-  border: 1px solid #eee;
-  border-radius: 10px; */
+  flex-wrap: wrap;
+  width: 100%;
+  height: fit-content;
+}
+
+.break {
+  flex-basis: 100%;
+}
+
+
+element.style {
+  padding: 20px;
+  overflow: visible;
+}
+@media only screen and (max-width: 1351px) {
+.ui-box {
+  width: calc(100% - 16px) !important;
+}
+
 }
