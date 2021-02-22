@@ -2,27 +2,27 @@ import * as d3 from 'd3';
 import React, { useRef, useEffect, useState } from 'react';
 import './style.css';
 
-const BarChart = ({ height, data }) => {
+const HealthGraph = ({ height, data }) => {
   const [translateCurrentX, setTranslateCurrentX] = useState({ value: 0 });
   const [timeStamp, setTimestamp] = useState(0);
-  const [rx, setRx] = useState(0);
-  const [tx, setTx] = useState(0);
+  const [health, setHealth] = useState(0);
   const [width, setWidth] = useState(0);
   const [leftOffset, setLeftOffset] = useState(false);
   const [rightOffset, setRightOffset] = useState(false);
   const ref = useRef();
 
   useEffect(() => {
-    setWidth(parseInt(d3.select('#bandwidth-usage').style('width'), 10) - 40);
+    deleteGraph()
+    console.log(width)
+    drawGraph();
+  }, [data, width]);
+
+  useEffect(() => {
+    setWidth(parseInt(d3.select('#health').style('width'), 10) - 40);
     const svg = d3.select(ref.current)
       .attr("width", width)
       .attr("height", height)
   }, [width]);
-  useEffect(() => {
-
-    console.log(width)
-    drawGraph();
-  }, [data, width]);
 
   const margin = ({ top: 10, right: 10, bottom: 0, left: 40 });
   data.sort((a, b) => a.timestamp - b.timestamp);
@@ -53,10 +53,6 @@ const BarChart = ({ height, data }) => {
     .x(d => x(d.timestamp))
     .y(d => y(d.rx))
 
-  const line2 = d3.line()
-    .x(d => x(d.timestamp))
-    .y(d => y(d.tx))
-
   const xAxis = g => g
     .attr("transform", `translate(0, ${height - 30})`)
     .call(d3.axisBottom(x).ticks(width / 80).tickSize(0).tickPadding(5))
@@ -80,7 +76,12 @@ const BarChart = ({ height, data }) => {
 
   const yGridlines = d3.axisLeft(y).tickSize(-width).tickFormat('').ticks(5);
 
+  const deleteGraph= () => {
+    d3.select("#health-main-container-svg").selectAll('svg').remove();
+  }
+
   const drawGraph = () => {
+    
     const svg = d3.select(ref.current)
       .attr("viewBox", [0, 0, width, height])
       .attr('id', 'svg-main')
@@ -112,21 +113,11 @@ const BarChart = ({ height, data }) => {
       nestedSvg.append("path")
         .datum(chart_data)
         .attr("fill", "none")
-        .attr("stroke", "#6EE294")
-        .attr("stroke-width", 4)
-        .attr("stroke-linejoin", "round")
-        .attr("stroke-linecap", "round")
-        .attr("id", 'thisisline')
-        .attr("d", line)
-
-      nestedSvg.append("path")
-        .datum(chart_data)
-        .attr("fill", "none")
         .attr("stroke", "#5F72FF")
         .attr("stroke-width", 4)
         .attr("stroke-linejoin", "round")
         .attr("stroke-linecap", "round")
-        .attr("d", line2);
+        .attr("d", line);
     }
 
     drawLines();
@@ -152,7 +143,7 @@ const BarChart = ({ height, data }) => {
       .scaleExtent([scale, scale])
       .on('zoom', function (event) {
         setTranslateCurrentX(translateCurrentX.value = event.transform.x);
-        d3.select('#tooltip')
+        d3.select('#health-tooltip')
           .style("opacity", 0)
         x = event.transform.rescaleX(referenceX)
 
@@ -187,7 +178,7 @@ const BarChart = ({ height, data }) => {
       .attr('width', width)
       .attr('height', height)
       .on('mouseover', () => {
-        d3.select('#tooltip')
+        d3.select('#health-tooltip')
           .style('opacity', 0)
       })
       .on('mousemove', (event) => {
@@ -197,34 +188,33 @@ const BarChart = ({ height, data }) => {
         var selectedData = data[i];
         if (selectedData) {
           setTimestamp(selectedData.timestamp)
-          setRx(selectedData.rx)
-          setTx(selectedData.tx)
-          d3.select('#tooltip')
+          setHealth(selectedData.rx)
+          d3.select('#health-tooltip')
             .style('position', 'absolute')
             .style('left', event.offsetX - 100 + 'px')
             .style('opacity', 1)
           console.log('jasam ofsetx s',event.offsetX)
           if(event.offsetX < 80) {
-            d3.select('#tooltip')
+            d3.select('#health-tooltip')
             .style('left', event.offsetX + 'px')
             setLeftOffset(true)
           } else {
             setLeftOffset(false)
           }
           if (event.offsetX > width - 100) {
-            d3.select('#tooltip')
+            d3.select('#health-tooltip')
             .style('left', event.offsetX - 200 + 'px')
             setRightOffset(true)
           } else {
             setRightOffset(false)
           }
         } else {
-          d3.select('#tooltip')
+          d3.select('#health-tooltip')
             .style("opacity", 0)
         }
       })
       .on('mouseout', () => {
-        d3.select('#tooltip')
+        d3.select('#health-tooltip')
           .style("opacity", 0)
       })
 
@@ -251,11 +241,11 @@ const BarChart = ({ height, data }) => {
 
   return (
     <>
-      <div id="bandwidth-usage" className="ui-box" style={{ padding: '20px', overflow: 'visible' }}>
+      <div id="health" className="ui-box" style={{ padding: '20px', overflow: 'visible' }}>
         <div className="ui-graph-labels">
           <div className="ui-graph-labels-inner">
             <div className="ui-graph-main-label">
-              <p>Bandwidth Usage</p>
+              <p>Health</p>
             </div>
             <div className="ui-graph-time-label">
               <p>1 hour</p>
@@ -266,21 +256,16 @@ const BarChart = ({ height, data }) => {
           </div>
         </div>
         <div className="chart" style={{ position: 'relative' }}>
-          <svg ref={ref} />
-          <div id="tooltip" className="custom-tooltip" >
+          <svg id="health-main-container-svg" ref={ref} />
+          <div id="health-tooltip" className="custom-tooltip" >
             <div className="ui-tooltip-top">
               <div className="ui-tooltip-label">
                 <p>{timeStamp}</p>
               </div>
               <div className="ui-tooltip-values">
-                {rx &&
-                  <div className="ui-tooltip-green">
-                    <p>{rx} Kb</p>
-                  </div>
-                }
-                {tx &&
+                {health &&
                   <div className="ui-tooltip-blue">
-                    <p>{tx} Mb</p>
+                    <p>{health} Mb</p>
                   </div>
                 }
               </div>
@@ -313,4 +298,4 @@ const BarChart = ({ height, data }) => {
   )
 }
 
-export default BarChart;
+export default HealthGraph;
