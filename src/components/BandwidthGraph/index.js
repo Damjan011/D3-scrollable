@@ -31,8 +31,8 @@ const BandwidthGraph = ({ data, height }) => {
   const margin = ({ top: 10, right: 10, bottom: 0, left: 40 });
   //data.sort((a, b) => a.timestamp - b.timestamp);
   var offset = 0,
-    limit = 10,
-    current_index = 10;
+    limit = 15,
+    current_index = 13;
 
   // Useful datapoints (data variable included from external file)
   var chart_data = data.slice(offset, limit),
@@ -45,7 +45,7 @@ const BandwidthGraph = ({ data, height }) => {
 
   var x = d3.scaleUtc()
     .domain([new Date(date_extent[0]), new Date(date_extent[1])])
-    .range([-2000, width])
+    .range([0, width])
 
   const y = d3.scaleLinear()
     .domain([0, d3.max(data, d => d.rx)]).nice()
@@ -61,7 +61,9 @@ const BandwidthGraph = ({ data, height }) => {
 
   const xAxis = g => g
     .attr("transform", `translate(0, ${height - 30})`)
-    .call(d3.axisBottom(x).ticks(width / 50).tickSize(0).tickPadding(5))
+    .attr('stroke-dasharray', '5 5')
+    .attr('class', 'x-axis-grid')
+    .call(d3.axisBottom(x).tickValues(data.map(e => e.timestamp)).tickSize(-(height - 40)).tickPadding(5))
 
   const yAxis = g => g
     .attr("transform", `translate(${width - 20},0)`)
@@ -78,7 +80,7 @@ const BandwidthGraph = ({ data, height }) => {
     .attr("transform", `translate(${0},0)`)
     .call(d3.axisRight(y).tickSize(0));
 
-  const xGridlines = d3.axisBottom(x).tickSize(-(height - 40)).tickFormat('').ticks(20);
+  const xGridlines = d3.axisBottom(x).tickSize(-(height - 40)).tickFormat('').ticks(13);
 
   const yGridlines = d3.axisLeft(y).tickSize(-width).tickFormat('').ticks(5);
 
@@ -106,15 +108,14 @@ const BandwidthGraph = ({ data, height }) => {
       .attr('class', 'svg-inner')
 
     nestedSvg.append('g')
-    .attr('font-stretch', 'unset')
       .call(xAxis)
       
-    nestedSvg.append('g')
-      .call(xGridlines)
-      .attr('transform', `translate(0, ${height - 30})`)
-      .attr('stroke-dasharray', '5 5')
-      .attr('class', 'x-axis-grid')
-      .attr('id', 'x-grid-lines')
+    // nestedSvg.append('g')
+    //   .call(xGridlines)
+    //   .attr('transform', `translate(0, ${height - 30})`)
+    //   .attr('stroke-dasharray', '5 5')
+    //   .attr('class', 'x-axis-grid')
+    //   .attr('id', 'x-grid-lines')
 
     nestedSvg.append("g")
       .call(yGridlines)

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import BandwidthGraph from './components/BandwidthGraph';
-import HealthGraph from './components/HealthGraph';
 
 const newData = [
   {
@@ -14,7 +13,6 @@ const newData = [
     tx: 4,
     up: "rx",
   },
-
   {
     dn: "tx",
     rx: 3,
@@ -26,7 +24,6 @@ const newData = [
     tx: 5,
     up: "rx",
   },
-
   {
     dn: "tx",
     rx: 4,
@@ -38,7 +35,6 @@ const newData = [
     tx: 2,
     up: "rx",
   },
-
   {
     dn: "tx",
     rx: 6,
@@ -50,7 +46,6 @@ const newData = [
     tx: 5,
     up: "rx",
   },
-
   {
     dn: "tx",
     rx: 2,
@@ -62,7 +57,6 @@ const newData = [
     tx: 4,
     up: "rx",
   },
-
   {
     dn: "tx",
     rx: 5,
@@ -74,12 +68,6 @@ const newData = [
     tx: 2,
     up: "rx",
   },
-
-
-
-
-
-
   {
     dn: "tx",
     rx: 7,
@@ -116,8 +104,6 @@ const newData = [
     tx: 6,
     up: "rx",
   },
-
-
   {
     dn: "tx",
     rx: 7,
@@ -129,8 +115,6 @@ const newData = [
     tx: 6,
     up: "rx",
   },
-
-
   {
     dn: "tx",
     rx: 6,

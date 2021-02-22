@@ -10,36 +10,6 @@ g path:last-of-type {
   display: none;
 }
 
-/* .tick line {
-  display: none;
-} */
-/* g {
-  transform: translateY(0) !important;
-} */
-
-/* .line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 2px;
-}
-
-.grid line {
-  stroke: lightgrey;
-  stroke-opacity: 0.7;
-  shape-rendering: crispEdges;
-}
-
-.grid path {
-  stroke-width: 0;
-} */
-
-/* text {
-  font-weight: 600;
-  font-size: 12px;
-  color: #aaa;
-}
-*/
-
 .ui-box {
   background: white;
 border: 1px solid #f0f0f0;
@@ -57,6 +27,8 @@ text {
   color: #929292;
 }
 
+
+
 .x-axis .tick line {
   stroke: #D9D9D9;
 }
@@ -65,9 +37,9 @@ text {
   stroke: #D9D9D9;
 } 
 
-.x-axis-grid g {
+/* .x-axis-grid g {
   stroke: #D9D9D9;
-}
+} */
 
 .x-axis-grid g line {
   stroke: #D9D9D9;
