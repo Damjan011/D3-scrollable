@@ -191,8 +191,6 @@ function App() {
       </div>
       <div style={{paddingTop: '100px'}} className="main-content">
       <BandwidthGraph height={180} data={data} />
-      {/* <div className="break"></div>
-      <HealthGraph width={800} height={190} data={data} /> */}
       <div className="break"></div>
       {/* <HealthGraph width={800} height={190} data={data} /> */}
       {/* <BandwidthGraph width={800} height={190} data={data} />
