@@ -190,7 +190,7 @@ function App() {
         <p>Sidebar</p>
       </div>
       <div style={{paddingTop: '100px'}} className="main-content">
-      <BandwidthGraph width={800} height={180} data={data} />
+      <BandwidthGraph height={180} data={data} />
       {/* <div className="break"></div>
       <HealthGraph width={800} height={190} data={data} /> */}
       <div className="break"></div>
